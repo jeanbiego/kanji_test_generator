@@ -1,0 +1,167 @@
+/* 印刷用CSS - ブラウザの印刷機能に最適化 */
+
+/* 基本設定 */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    font-size: 12pt;
+    line-height: 1.4;
+    color: #000;
+    background: #fff;
+  }
+  
+  .print-content {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 20mm 15mm;
+    box-sizing: border-box;
+  }
+  
+  /* ヘッダー */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15mm;
+    border-bottom: 2px solid #000;
+    padding-bottom: 5mm;
+  }
+  
+  .title {
+    font-size: 18pt;
+    font-weight: bold;
+  }
+  
+  .header-info {
+    font-size: 11pt;
+  }
+  
+  /* 問題エリア */
+  main {
+    margin-bottom: 20mm;
+  }
+  
+  .question-item {
+    margin-bottom: 15mm;
+    page-break-inside: avoid;
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .question-number {
+    font-weight: bold;
+    margin-right: 5mm;
+    min-width: 8mm;
+    font-size: 14pt;
+  }
+  
+  .question-content {
+    flex: 1;
+  }
+  
+  .question-text {
+    font-size: 14pt;
+    line-height: 1.6;
+    margin-bottom: 8mm;
+  }
+  
+  .answer-space {
+    display: flex;
+    align-items: center;
+    margin-top: 5mm;
+  }
+  
+  .answer-label {
+    font-weight: bold;
+    margin-right: 5mm;
+    font-size: 12pt;
+  }
+  
+  .answer-box {
+    border: 2px solid #000;
+    width: 60mm;
+    height: 8mm;
+    background-color: white;
+  }
+  
+  /* フッター */
+  footer {
+    position: fixed;
+    bottom: 10mm;
+    right: 15mm;
+    font-size: 10pt;
+  }
+  
+  .page-info {
+    text-align: right;
+  }
+  
+  /* 印刷制御 */
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  /* ページ区切り */
+  .page-break {
+    page-break-before: always;
+  }
+  
+  /* 印刷時の余白設定 */
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}
+
+/* 画面表示用（印刷時は非表示） */
+@media screen {
+  .print-only {
+    display: none;
+  }
+  
+  .print-controls {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+  
+  .print-controls button {
+    margin: 0 5px;
+    padding: 8px 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .print-controls button:hover {
+    background: #0056b3;
+  }
+  
+  .print-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+}
+
