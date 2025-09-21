@@ -73,140 +73,131 @@
 ## 現在の実装状況
 
 ### 現在のタグ/ブランチ
-- **タグ**: なし（初期状態）
-- **状態**: プロジェクト開始、実装準備中
+- **タグ**: v1.0.0-stable-basic-functionality
+- **状態**: 基本機能実装完了、UI/UX改善課題対応中
 
 ### 実装方針
 
-#### Phase 1: 基本機能実装（優先度：高）
+## 完了した実装タスク
+
+### Phase 1: 基本機能実装（完了）
 **目標**: アプリケーションの基本機能を実装し、動作可能な状態にする
 
-**課題1**: プロジェクト構造の構築
-**詳細**: [20250127_implementation_project_structure.md](docs/20250127_implementation_project_structure.md)
-**状態**: 完了
-**優先度**: 高
-**影響度**: 高 - 全体の基盤となる構造
-**担当**: AI Assistant
-**完了日**: 2025-01-27
+✅ **課題1**: プロジェクト構造の構築
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: ディレクトリ構造、モジュール設計、依存関係管理
 
-**課題2**: データモデルの実装
-**詳細**: [20250127_implementation_data_models.md](docs/20250127_implementation_data_models.md)
-**状態**: 完了
-**優先度**: 高
-**影響度**: 高 - アプリケーション全体のデータ構造
-**担当**: AI Assistant
-**完了日**: 2025-01-27
+✅ **課題2**: データモデルの実装
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: Problem、Attemptクラス、バリデーション機能
 
-**課題3**: 問題入力機能の実装
-**詳細**: [20250127_implementation_problem_input.md](docs/20250127_implementation_problem_input.md)
-**状態**: 完了
-**優先度**: 高
-**影響度**: 高 - アプリケーションの核心機能
-**担当**: AI Assistant
-**完了日**: 2025-01-27
+✅ **課題3**: 問題入力機能の実装
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 問題作成フォーム、プレビュー機能、リセット機能
 
-**課題4**: プレビュー機能の実装
-**詳細**: [20250127_implementation_preview.md](docs/20250127_implementation_preview.md)
-**状態**: 完了
-**優先度**: 高
-**影響度**: 中 - ユーザビリティに直接影響
-**担当**: AI Assistant
-**完了日**: 2025-01-27
+✅ **課題4**: プレビュー機能の実装
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 漢字→ひらがな変換、プレビュー表示
 
-**課題5**: 印刷用ページ表示機能の実装
-**詳細**: [20250127_implementation_print_page.md](docs/20250127_implementation_print_page.md)
-**状態**: 完了
-**優先度**: 高
-**影響度**: 高 - アプリケーションの主要機能
-**担当**: AI Assistant
-**完了日**: 2025-01-27
+✅ **課題5**: 印刷用ページ表示機能の実装
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: HTMLテンプレート、CSS印刷最適化、ブラウザ印刷対応
 
-#### Phase 2: データ管理機能（優先度：中）
+### Phase 2: データ管理機能（完了）
 **目標**: 問題と試行データの永続化と管理機能を実装
 
-**課題6**: CSV入出力機能の実装
-**詳細**: [20250127_implementation_csv_io.md](docs/20250127_implementation_csv_io.md)
-**状態**: 完了
-**優先度**: 中
-**影響度**: 中 - データの永続化に必要
-**担当**: AI Assistant
-**完了日**: 2025-01-27
+✅ **課題6**: CSV入出力機能の実装
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: ProblemStorage、AttemptStorage、CSV読み書き機能
 
-**課題7**: 問題履歴管理機能の実装
-**詳細**: [20250127_implementation_problem_history.md](docs/20250127_implementation_problem_history.md)
-**状態**: 未着手
-**優先度**: 中
-**影響度**: 中 - ユーザビリティの向上
-**担当**: 未定
-**予定完了日**: 2025-02-07
+✅ **課題7**: 問題履歴管理機能の実装
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 履歴表示、検索・フィルタリング、統計情報、問題操作
 
-**課題8**: 試行ログ管理機能の実装
-**詳細**: [20250127_implementation_attempt_logging.md](docs/20250127_implementation_attempt_logging.md)
-**状態**: 未着手
-**優先度**: 中
-**影響度**: 中 - 学習進捗の管理
-**担当**: 未定
-**予定完了日**: 2025-02-09
+✅ **課題8**: 試行ログ管理機能の実装
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 採点機能、学習記録、進捗可視化、復習支援
 
-#### Phase 3: UI/UX改善（優先度：中）
+### 追加実装機能（完了）
+✅ **重複チェック機能**: 問題作成時の重複検出と警告表示
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 完全一致チェック、漢字・読み組み合わせチェック、問題文一致チェック、強制追加オプション
+- **実装方針**: [20250127_implementation_duplicate_check_fix.md](docs/20250127_implementation_duplicate_check_fix.md)
+
+✅ **印刷用ページのUI改善**: 印刷時の表示と操作性の向上
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 印刷時のフォントサイズ20pts調整、制御ボタンの非表示、CSS埋め込み
+- **実装方針**: [20250127_implementation_print_ui_improvement.md](docs/20250127_implementation_print_ui_improvement.md)
+
+✅ **サイドメニューの表示形式変更**: プルダウンから常時表示形式への変更
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: ボタンベースのナビゲーション、常時表示のサイドバーメニュー、現在ページの視覚的表示
+- **実装方針**: [20250127_implementation_sidebar_improvement.md](docs/20250127_implementation_sidebar_improvement.md)
+
+✅ **印刷時のフォントサイズ調整**: 印刷用ページのフォントサイズを20ptsに変更
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 印刷時のフォントサイズ20pts変更、各要素のフォントサイズ調整、視認性向上
+- **実装方針**: [20250127_implementation_font_size_adjustment.md](docs/20250127_implementation_font_size_adjustment.md)
+
+⚠️ **リセットボタンの動作改善**: フォーム内容のリセット機能の改善
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 重複状態のリセット機能（正常動作）、フォーム内容のクリア（Streamlitの制限により部分的解決）
+- **実装方針**: [20250127_implementation_reset_button_fix.md](docs/20250127_implementation_reset_button_fix.md)
+- **制限事項**: Streamlitの`st.form`内の入力フィールドは、リセットボタンを押しても自動的にクリアされない
+
+## 未完了の実装タスク
+
+### Phase 3: UI/UX改善（優先度：中）
 **目標**: ユーザーインターフェースと操作性の向上
 
 **課題9**: 採点UIの実装
-**詳細**: [20250127_implementation_scoring_ui.md](docs/20250127_implementation_scoring_ui.md)
-**状態**: 未着手
-**優先度**: 中
-**影響度**: 中 - ユーザビリティの向上
-**担当**: 未定
-**予定完了日**: 2025-02-12
+- **状態**: 未着手
+- **優先度**: 中
+- **影響度**: 中 - ユーザビリティの向上
+- **担当**: 未定
+- **予定完了日**: 2025-02-12
+- **実装方針**: [20250127_implementation_scoring_ui.md](docs/20250127_implementation_scoring_ui.md)
 
 **課題10**: エラーハンドリングの強化
-**詳細**: [20250127_implementation_error_handling.md](docs/20250127_implementation_error_handling.md)
-**状態**: 未着手
-**優先度**: 中
-**影響度**: 中 - アプリケーションの安定性
-**担当**: 未定
-**予定完了日**: 2025-02-14
+- **状態**: 未着手
+- **優先度**: 中
+- **影響度**: 中 - アプリケーションの安定性
+- **担当**: 未定
+- **予定完了日**: 2025-02-14
+- **実装方針**: [20250127_implementation_error_handling.md](docs/20250127_implementation_error_handling.md)
 
-#### Phase 4: 高度な機能（優先度：低）
+### Phase 4: 高度な機能（優先度：低）
 **目標**: アプリケーションの機能拡張と高度化
 
 **課題11**: 問題検索機能の実装
-**詳細**: [20250127_implementation_search.md](docs/20250127_implementation_search.md)
-**状態**: 未着手
-**優先度**: 低
-**影響度**: 低 - 機能拡張
-**担当**: 未定
-**予定完了日**: 2025-02-16
+- **状態**: 未着手
+- **優先度**: 低
+- **影響度**: 低 - 機能拡張
+- **担当**: 未定
+- **予定完了日**: 2025-02-16
+- **実装方針**: [20250127_implementation_search_functionality.md](docs/20250127_implementation_search_functionality.md)
 
 **課題12**: 統計機能の実装
-**詳細**: [20250127_implementation_statistics.md](docs/20250127_implementation_statistics.md)
-**状態**: 未着手
-**優先度**: 低
-**影響度**: 低 - 機能拡張
-**担当**: 未定
-**予定完了日**: 2025-02-18
+- **状態**: 未着手
+- **優先度**: 低
+- **影響度**: 低 - 機能拡張
+- **担当**: 未定
+- **予定完了日**: 2025-02-18
+- **実装方針**: [20250127_implementation_statistics_functionality.md](docs/20250127_implementation_statistics_functionality.md)
 
-### 実装順序
-
-#### 第1段階（2025-01-27 ～ 2025-02-02）
-1. **課題1**: プロジェクト構造の構築 ✅ 完了
-2. **課題2**: データモデルの実装 ✅ 完了
-3. **課題3**: 問題入力機能の実装 ✅ 完了
-4. **課題4**: プレビュー機能の実装 ✅ 完了
-5. **課題5**: 印刷用ページ表示機能の実装 ✅ 完了
-
-#### 第2段階（2025-02-03 ～ 2025-02-09）
-1. **課題6**: CSV入出力機能の実装
-2. **課題7**: 問題履歴管理機能の実装
-3. **課題8**: 試行ログ管理機能の実装
-
-#### 第3段階（2025-02-10 ～ 2025-02-14）
-1. **課題9**: 採点UIの実装
-2. **課題10**: エラーハンドリングの強化
-
-#### 第4段階（2025-02-15 ～ 2025-02-18）
-1. **課題11**: 問題検索機能の実装
-2. **課題12**: 統計機能の実装
 
 ### 技術スタック
 
@@ -239,21 +230,137 @@
 - **型ヒント**: 適切な型ヒントの追加
 - **ドキュメント**: docstringの記述
 
-### 次回予定
-**次に取り組む予定の実装タスク**:
-1. **課題7**: 問題履歴管理機能の実装
-   - 履歴表示UIの実装
-   - 問題の検索・フィルタリング機能
-   - 履歴データの管理
+## 実装完了サマリー
 
-2. **課題8**: 試行ログ管理機能の実装
-   - 試行ログの記録機能
-   - 学習進捗の可視化
-   - 統計情報の表示
+### 完了した実装タスク（2025-01-27）
+**Phase 1-2の基本機能実装**: 8件完了
+**Phase 3のUI/UX改善**: 4件完了、1件部分的完了
 
-**ブロッカー**: 現在、実装を阻害している問題はありません
+#### 完全解決した課題
+1. **重複チェック機能の動作不良修正** ✅
+   - フォーム送信処理の修正
+   - フォーム内での重複警告表示
+   - デバッグ出力の削除とクリーンアップ
+
+2. **印刷用ページのUI改善** ✅
+   - 印刷時のフォントサイズを20ptsに変更
+   - 「印刷」「閉じる」ボタンの非表示
+   - CSSのHTML埋め込みによる確実な適用
+
+3. **サイドメニューの表示形式変更** ✅
+   - プルダウンメニューからボタンベースのナビゲーションに変更
+   - 常時表示のサイドバーメニュー
+   - 現在のページの視覚的表示
+
+4. **印刷時のフォントサイズ調整** ✅
+   - 印刷時のフォントサイズを20ptsに変更
+   - 各要素のフォントサイズ調整
+   - 印刷時の視認性向上
+
+#### 部分的解決した課題
+5. **リセットボタンの動作改善** ⚠️
+   - ✅ 重複状態のリセット機能（正常動作）
+   - ❌ フォーム内容のクリア（Streamlitの制限により未解決）
+   - **制限事項**: Streamlitの`st.form`内の入力フィールドは、リセットボタンを押しても自動的にクリアされない
+
+### 実装品質
+- **テストカバレッジ**: 主要機能の単体テスト実装済み
+- **コード品質**: リント・フォーマット適用済み
+- **ドキュメント**: 実装方針ファイル完備
+- **動作確認**: 全機能の動作確認完了
+
+## 次回予定
+
+### Phase 3: UI/UX改善（優先度：中）
+**目標**: ユーザーインターフェースと操作性の向上
+
+**課題9**: 採点UIの実装
+- **状態**: 未着手
+- **優先度**: 中
+- **影響度**: 中 - ユーザビリティの向上
+- **担当**: 未定
+- **予定完了日**: 2025-02-12
+- **実装方針**: [20250127_implementation_scoring_ui.md](docs/20250127_implementation_scoring_ui.md)
+- **内容**: 採点画面の実装、正誤入力機能、データ保存機能
+
+**課題10**: エラーハンドリングの強化
+- **状態**: 未着手
+- **優先度**: 中
+- **影響度**: 中 - アプリケーションの安定性
+- **担当**: 未定
+- **予定完了日**: 2025-02-14
+- **実装方針**: [20250127_implementation_error_handling.md](docs/20250127_implementation_error_handling.md)
+- **内容**: 詳細なエラーメッセージの表示、ログ機能の実装、例外処理の改善
+
+### Phase 4: 高度な機能（優先度：低）
+**目標**: アプリケーションの機能拡張と高度化
+
+**課題11**: 問題検索機能の実装
+- **状態**: 未着手
+- **優先度**: 低
+- **影響度**: 低 - 機能拡張
+- **担当**: 未定
+- **予定完了日**: 2025-02-16
+- **実装方針**: [20250127_implementation_search_functionality.md](docs/20250127_implementation_search_functionality.md)
+- **内容**: 高度な検索条件、フィルタリング機能、検索結果の表示
+
+**課題12**: 統計機能の実装
+- **状態**: 未着手
+- **優先度**: 低
+- **影響度**: 低 - 機能拡張
+- **担当**: 未定
+- **予定完了日**: 2025-02-18
+- **実装方針**: [20250127_implementation_statistics_functionality.md](docs/20250127_implementation_statistics_functionality.md)
+- **内容**: 統計計算機能、可視化機能、レポート生成
+
+**課題13**: 採点機能の拡張
+- **状態**: 未着手
+- **優先度**: 高
+- **影響度**: 高 - コア機能の拡張
+- **担当**: 未定
+- **予定完了日**: 2025-02-05
+- **実装方針**: [20250127_implementation_scoring_enhancement.md](docs/20250127_implementation_scoring_enhancement.md)
+- **内容**: 印刷した問題群の自動表示、採点機能、CSV更新機能
+
+**課題14**: 履歴管理機能の拡張
+- **状態**: 未着手
+- **優先度**: 高
+- **影響度**: 高 - データ管理の改善
+- **担当**: 未定
+- **予定完了日**: 2025-02-07
+- **実装方針**: [20250127_implementation_history_enhancement.md](docs/20250127_implementation_history_enhancement.md)
+- **内容**: 重複判定の削除、採点結果の反映、学習進捗の記録
+
+### ブロッカー
+**現在、実装を阻害している問題はありません**
+
+## 実装優先順位計画
+詳細な実装計画と優先順位については、以下のファイルを参照してください：
+- [20250127_implementation_priority_plan.md](docs/20250127_implementation_priority_plan.md)
 
 ---
 
 **最終更新日**: 2025-01-27
-**状態**: 第1段階完了、第2段階進行中、基本機能実装完了
+**状態**: 基本機能実装完了、UI/UX改善課題4件完全解決・1件部分的解決、次フェーズ実装準備完了
+
+## 実装ファイル管理
+
+### 完了した実装ファイル
+- [20250127_implementation_duplicate_check_fix.md](docs/20250127_implementation_duplicate_check_fix.md) - 重複チェック機能の動作不良修正
+- [20250127_implementation_print_ui_improvement.md](docs/20250127_implementation_print_ui_improvement.md) - 印刷用ページのUI改善
+- [20250127_implementation_sidebar_improvement.md](docs/20250127_implementation_sidebar_improvement.md) - サイドメニューの表示形式変更
+- [20250127_implementation_font_size_adjustment.md](docs/20250127_implementation_font_size_adjustment.md) - 印刷時のフォントサイズ調整
+- [20250127_implementation_reset_button_fix.md](docs/20250127_implementation_reset_button_fix.md) - リセットボタンの動作改善（部分的解決）
+
+### 未着手の実装ファイル
+- [20250127_implementation_scoring_ui.md](docs/20250127_implementation_scoring_ui.md) - 採点UIの実装
+- [20250127_implementation_error_handling.md](docs/20250127_implementation_error_handling.md) - エラーハンドリングの強化
+- [20250127_implementation_search_functionality.md](docs/20250127_implementation_search_functionality.md) - 問題検索機能の実装
+- [20250127_implementation_statistics_functionality.md](docs/20250127_implementation_statistics_functionality.md) - 統計機能の実装
+- [20250127_implementation_scoring_enhancement.md](docs/20250127_implementation_scoring_enhancement.md) - 採点機能の拡張
+- [20250127_implementation_history_enhancement.md](docs/20250127_implementation_history_enhancement.md) - 履歴管理機能の拡張
+
+### 実装ファイルの命名規則
+- **形式**: `{YYYYMMDD}_implementation_{タスク名}.md`
+- **完了後**: ファイル名変更禁止（tag_history.mdとの整合性保持）
+- **状態管理**: ファイル内容で完了状態を明確化

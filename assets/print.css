@@ -11,7 +11,7 @@
     margin: 0;
     padding: 0;
     font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
-    font-size: 12pt;
+    font-size: 20pt;
     line-height: 1.4;
     color: #000;
     background: #fff;
@@ -36,12 +36,12 @@
   }
   
   .title {
-    font-size: 18pt;
+    font-size: 24pt;
     font-weight: bold;
   }
   
   .header-info {
-    font-size: 11pt;
+    font-size: 18pt;
   }
   
   /* 問題エリア */
@@ -60,7 +60,7 @@
     font-weight: bold;
     margin-right: 5mm;
     min-width: 8mm;
-    font-size: 14pt;
+    font-size: 20pt;
   }
   
   .question-content {
@@ -68,7 +68,7 @@
   }
   
   .question-text {
-    font-size: 14pt;
+    font-size: 20pt;
     line-height: 1.6;
     margin-bottom: 8mm;
   }
@@ -82,13 +82,13 @@
   .answer-label {
     font-weight: bold;
     margin-right: 5mm;
-    font-size: 12pt;
+    font-size: 18pt;
   }
   
   .answer-box {
     border: 2px solid #000;
-    width: 60mm;
-    height: 8mm;
+    width: 80mm;
+    height: 12mm;
     background-color: white;
   }
   
@@ -97,7 +97,7 @@
     position: fixed;
     bottom: 10mm;
     right: 15mm;
-    font-size: 10pt;
+    font-size: 16pt;
   }
   
   .page-info {
