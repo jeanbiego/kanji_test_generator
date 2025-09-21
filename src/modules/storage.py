@@ -125,3 +125,14 @@ class AttemptStorage:
         """特定の問題の試行を取得"""
         attempts = self.load_attempts()
         return [a for a in attempts if a.problem_id == problem_id]
+    
+    def save_attempts_batch(self, attempts: List[Attempt]) -> int:
+        """複数の試行を一括保存"""
+        saved_count = 0
+        try:
+            for attempt in attempts:
+                if self.save_attempt(attempt):
+                    saved_count += 1
+        except Exception as e:
+            print(f"一括保存中にエラーが発生しました: {e}")
+        return saved_count

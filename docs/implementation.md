@@ -313,26 +313,34 @@
 - **実装方針**: [20250127_implementation_statistics_functionality.md](docs/20250127_implementation_statistics_functionality.md)
 - **内容**: 統計計算機能、可視化機能、レポート生成
 
-**課題13**: 採点機能の拡張
-- **状態**: 未着手
-- **優先度**: 高
-- **影響度**: 高 - コア機能の拡張
-- **担当**: 未定
-- **予定完了日**: 2025-02-05
-- **実装方針**: [20250127_implementation_scoring_enhancement.md](docs/20250127_implementation_scoring_enhancement.md)
+✅ **課題13**: 採点機能の拡張
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
 - **内容**: 印刷した問題群の自動表示、採点機能、CSV更新機能
+- **実装方針**: [20250127_implementation_scoring_enhancement.md](docs/20250127_implementation_scoring_enhancement.md)
 
-**課題14**: 履歴管理機能の拡張
-- **状態**: 未着手
-- **優先度**: 高
-- **影響度**: 高 - データ管理の改善
-- **担当**: 未定
-- **予定完了日**: 2025-02-07
-- **実装方針**: [20250127_implementation_history_enhancement.md](docs/20250127_implementation_history_enhancement.md)
+✅ **課題14**: 履歴管理機能の拡張
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
 - **内容**: 重複判定の削除、採点結果の反映、学習進捗の記録
+- **実装方針**: [20250127_implementation_history_enhancement.md](docs/20250127_implementation_history_enhancement.md)
 
 ### ブロッカー
 **現在、実装を阻害している問題はありません**
+
+## バグ修正記録
+
+### 2025-01-27 履歴ページエラー修正
+- **問題**: 履歴ページで「'list' object has no attribute 'get'」エラーが発生
+- **原因**: `problem_stats`変数の初期化タイミングとエラーハンドリングの問題
+- **修正内容**:
+  - `problem_stats`の初期化を`try`ブロックの外に移動
+  - エラー発生時でも空の辞書を維持するように修正
+  - 問題一覧表示部分で`isinstance`チェックを追加
+  - エラーハンドリングを強化し、詳細なログを出力
+- **影響範囲**: 履歴管理機能
+- **修正ファイル**: `src/app.py`
+- **状態**: 完了
 
 ## 実装優先順位計画
 詳細な実装計画と優先順位については、以下のファイルを参照してください：
@@ -341,7 +349,12 @@
 ---
 
 **最終更新日**: 2025-01-27
-**状態**: 基本機能実装完了、UI/UX改善課題4件完全解決・1件部分的解決、次フェーズ実装準備完了
+**状態**: 基本機能実装完了、UI/UX改善課題4件完全解決・1件部分的解決、高優先度課題4件完了、中優先度課題2件完了、バグ修正1件完了、次フェーズ実装準備完了
+
+## 最新の修正内容
+- **履歴ページエラー修正**: 「'list' object has no attribute 'get'」エラーを解決
+- **エラーハンドリング強化**: 変数の初期化タイミングと型チェックを改善
+- **安定性向上**: エラー発生時のフォールバック処理を追加
 
 ## 実装ファイル管理
 
@@ -351,14 +364,14 @@
 - [20250127_implementation_sidebar_improvement.md](docs/20250127_implementation_sidebar_improvement.md) - サイドメニューの表示形式変更
 - [20250127_implementation_font_size_adjustment.md](docs/20250127_implementation_font_size_adjustment.md) - 印刷時のフォントサイズ調整
 - [20250127_implementation_reset_button_fix.md](docs/20250127_implementation_reset_button_fix.md) - リセットボタンの動作改善（部分的解決）
-
-### 未着手の実装ファイル
-- [20250127_implementation_scoring_ui.md](docs/20250127_implementation_scoring_ui.md) - 採点UIの実装
-- [20250127_implementation_error_handling.md](docs/20250127_implementation_error_handling.md) - エラーハンドリングの強化
-- [20250127_implementation_search_functionality.md](docs/20250127_implementation_search_functionality.md) - 問題検索機能の実装
-- [20250127_implementation_statistics_functionality.md](docs/20250127_implementation_statistics_functionality.md) - 統計機能の実装
 - [20250127_implementation_scoring_enhancement.md](docs/20250127_implementation_scoring_enhancement.md) - 採点機能の拡張
 - [20250127_implementation_history_enhancement.md](docs/20250127_implementation_history_enhancement.md) - 履歴管理機能の拡張
+- [20250127_implementation_scoring_ui.md](docs/20250127_implementation_scoring_ui.md) - 採点UIの実装
+- [20250127_implementation_error_handling.md](docs/20250127_implementation_error_handling.md) - エラーハンドリングの強化
+
+### 未着手の実装ファイル
+- [20250127_implementation_search_functionality.md](docs/20250127_implementation_search_functionality.md) - 問題検索機能の実装
+- [20250127_implementation_statistics_functionality.md](docs/20250127_implementation_statistics_functionality.md) - 統計機能の実装
 
 ### 実装ファイルの命名規則
 - **形式**: `{YYYYMMDD}_implementation_{タスク名}.md`

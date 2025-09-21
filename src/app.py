@@ -9,18 +9,27 @@ from src.modules.storage import ProblemStorage, AttemptStorage
 from src.modules.rendering import TextRenderer
 from src.modules.validators import InputValidator
 from src.modules.utils import get_current_datetime
+from src.modules.logger import app_logger
+from src.modules.error_handler import ErrorHandler, error_handler, safe_execute
 
+@error_handler("アプリケーション初期化中")
 def main():
     """メインアプリケーション"""
-    st.set_page_config(
-        page_title="Kanji Test Generator",
-        page_icon="📝",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
-    
-    st.title("📝 Kanji Test Generator")
-    st.markdown("小学生向け漢字テスト自動作成アプリケーション")
+    try:
+        st.set_page_config(
+            page_title="Kanji Test Generator",
+            page_icon="📝",
+            layout="wide",
+            initial_sidebar_state="expanded"
+        )
+        
+        st.title("📝 Kanji Test Generator")
+        st.markdown("小学生向け漢字テスト自動作成アプリケーション")
+        
+        app_logger.info("アプリケーション開始")
+    except Exception as e:
+        ErrorHandler.handle_error(e, "アプリケーション初期化中")
+        return
     
     # セッション状態の初期化
     if 'problems' not in st.session_state:
@@ -29,6 +38,10 @@ def main():
         st.session_state.problem_storage = ProblemStorage()
     if 'attempt_storage' not in st.session_state:
         st.session_state.attempt_storage = AttemptStorage()
+    if 'printed_problems' not in st.session_state:
+        st.session_state.printed_problems = []
+    if 'scoring_results' not in st.session_state:
+        st.session_state.scoring_results = {}
     
     # サイドバーでページ選択（常時表示）
     st.sidebar.title("📝 メニュー")
@@ -258,18 +271,27 @@ def check_duplicate_problem(sentence: str, answer_kanji: str, reading: str) -> t
         st.warning(f"重複チェック中にエラーが発生しました: {e}")
         return False, ""
 
+@error_handler("問題保存中")
 def save_all_problems():
     """すべての問題を保存"""
     if not st.session_state.problems:
-        st.warning("保存する問題がありません。")
+        ErrorHandler.handle_warning("保存する問題がありません。")
         return
     
     try:
+        saved_count = 0
         for problem in st.session_state.problems:
-            st.session_state.problem_storage.save_problem(problem)
-        st.success(f"✅ {len(st.session_state.problems)}問の問題を保存しました！")
+            if st.session_state.problem_storage.save_problem(problem):
+                saved_count += 1
+                app_logger.info(f"問題を保存しました: {problem.answer_kanji}")
+        
+        if saved_count > 0:
+            ErrorHandler.handle_success(f"{saved_count}問の問題を保存しました！")
+            app_logger.info(f"問題保存完了: {saved_count}問")
+        else:
+            ErrorHandler.handle_error(Exception("問題の保存に失敗しました"), "問題保存中")
     except Exception as e:
-        st.error(f"❌ 保存に失敗しました: {e}")
+        ErrorHandler.handle_error(e, "問題保存中")
 
 def show_print_page():
     """印刷用ページ表示"""
@@ -360,8 +382,17 @@ def show_print_page():
                 questions_per_page
             )
             
+            # 印刷した問題群をセッション状態に保存
+            st.session_state.printed_problems = problems_to_print.copy()
+            
             # HTMLを表示
             st.components.v1.html(html_content, height=600, scrolling=True)
+            
+            # 採点ページへの案内
+            st.success("✅ 印刷用ページを表示しました！採点ページで採点できます。")
+            if st.button("✅ 採点ページに移動", type="secondary"):
+                st.session_state.current_page = "採点"
+                st.rerun()
             
         except Exception as e:
             st.error(f"❌ 印刷用ページの生成に失敗しました: {e}")
@@ -370,81 +401,42 @@ def show_scoring_page():
     """採点ページ"""
     st.header("📊 採点・学習記録")
     
-    # 保存された問題を読み込み
-    try:
-        saved_problems = st.session_state.problem_storage.load_problems()
+    # 印刷した問題群がある場合は優先表示
+    if st.session_state.printed_problems:
+        st.subheader("🖨️ 今回印刷した問題群の採点")
+        st.info(f"印刷用ページで表示した {len(st.session_state.printed_problems)} 問の問題を採点できます。")
         
-        if not saved_problems:
-            st.info("📝 採点する問題がありません。問題作成ページで問題を作成してください。")
-            return
-        
-        # 問題選択
-        st.subheader("📋 採点する問題を選択")
-        
-        # 問題選択方法
-        selection_method = st.radio(
-            "選択方法",
-            ["個別選択", "一括選択", "最近作成した問題"],
-            horizontal=True
-        )
-        
-        selected_problems = []
-        
-        if selection_method == "個別選択":
-            selected_problem_ids = st.multiselect(
-                "採点する問題を選択",
-                options=[(p.id, f"{p.answer_kanji} ({p.reading}) - {p.sentence[:30]}...") for p in saved_problems],
-                format_func=lambda x: x[1]
-            )
-            selected_problems = [p for p in saved_problems if p.id in [x[0] for x in selected_problem_ids]]
-            
-        elif selection_method == "一括選択":
-            col1, col2 = st.columns(2)
-            with col1:
-                select_all = st.button("すべて選択")
-            with col2:
-                select_none = st.button("選択解除")
-            
-            if select_all:
-                selected_problems = saved_problems
-            elif select_none:
-                selected_problems = []
-            else:
-                selected_problems = saved_problems  # デフォルトで全選択
-                
-        elif selection_method == "最近作成した問題":
-            recent_count = st.number_input("最近作成した問題数", min_value=1, max_value=len(saved_problems), value=5)
-            selected_problems = sorted(saved_problems, key=lambda x: x.created_at, reverse=True)[:recent_count]
-        
-        if not selected_problems:
-            st.info("採点する問題を選択してください。")
-            return
+        # 印刷した問題群の表示
+        for i, problem in enumerate(st.session_state.printed_problems):
+            with st.expander(f"問題 {i+1}: {problem.answer_kanji} ({problem.reading})"):
+                st.write(f"**問題文**: {problem.sentence}")
+                st.write(f"**回答漢字**: {problem.answer_kanji}")
+                st.write(f"**読み**: {problem.reading}")
         
         # 採点フォーム
-        st.subheader(f"✏️ 採点 ({len(selected_problems)}問)")
-        
-        with st.form("scoring_form"):
+        with st.form("printed_problems_scoring_form"):
+            st.subheader("✏️ 採点")
             scores = {}
             
-            for i, problem in enumerate(selected_problems):
+            for i, problem in enumerate(st.session_state.printed_problems):
                 st.write(f"**問題 {i+1}**: {problem.sentence}")
                 st.write(f"**回答漢字**: {problem.answer_kanji} ({problem.reading})")
                 
                 # 正誤選択
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    correct = st.radio(f"正誤", ["正解", "不正解"], key=f"score_{problem.id}", horizontal=True)
+                    correct = st.radio(f"正誤", ["正解", "不正解"], key=f"printed_score_{problem.id}", horizontal=True)
                 with col2:
                     if correct == "不正解":
                         mistake_type = st.selectbox(
                             "間違いの種類",
                             ["読み間違い", "漢字間違い", "その他"],
-                            key=f"mistake_{problem.id}"
+                            key=f"printed_mistake_{problem.id}"
                         )
                     else:
                         mistake_type = None
                 with col3:
-                    notes = st.text_input("メモ", key=f"notes_{problem.id}", placeholder="学習メモ（任意）")
+                    notes = st.text_input("メモ", key=f"printed_notes_{problem.id}", placeholder="学習メモ（任意）")
                 
                 scores[problem.id] = {
                     'is_correct': correct == "正解",
@@ -498,14 +490,166 @@ def show_scoring_page():
                             if mistake_analysis:
                                 for mistake_type, count in mistake_analysis.items():
                                     st.write(f"**{mistake_type}**: {count}問")
+                        
+                        # 印刷した問題群をクリア
+                        st.session_state.printed_problems = []
+                        st.rerun()
                     else:
                         st.error("❌ 採点結果の保存に失敗しました。")
                         
                 except Exception as e:
                     st.error(f"❌ 採点結果の保存に失敗しました: {e}")
+        
+        # 他の問題を採点する場合の選択
+        st.markdown("---")
+        st.subheader("📋 他の問題を採点する")
+        
+        if st.button("📚 保存された問題から選択して採点", type="secondary"):
+            st.session_state.show_manual_selection = True
+            st.rerun()
     
-    except Exception as e:
-        st.error(f"❌ 採点ページの読み込みに失敗しました: {e}")
+    # 手動選択モードまたは印刷した問題群がない場合
+    if not st.session_state.printed_problems or st.session_state.get('show_manual_selection', False):
+        # 手動選択モードをリセット
+        if 'show_manual_selection' in st.session_state:
+            del st.session_state.show_manual_selection
+        
+        # 保存された問題を読み込み
+        try:
+            saved_problems = st.session_state.problem_storage.load_problems()
+            
+            if not saved_problems:
+                st.info("📝 採点する問題がありません。問題作成ページで問題を作成してください。")
+                return
+            
+            # 問題選択
+            st.subheader("📋 採点する問題を選択")
+            
+            # 問題選択方法
+            selection_method = st.radio(
+                "選択方法",
+                ["個別選択", "一括選択", "最近作成した問題"],
+                horizontal=True
+            )
+            
+            selected_problems = []
+            
+            if selection_method == "個別選択":
+                selected_problem_ids = st.multiselect(
+                    "採点する問題を選択",
+                    options=[(p.id, f"{p.answer_kanji} ({p.reading}) - {p.sentence[:30]}...") for p in saved_problems],
+                    format_func=lambda x: x[1]
+                )
+                selected_problems = [p for p in saved_problems if p.id in [x[0] for x in selected_problem_ids]]
+                
+            elif selection_method == "一括選択":
+                col1, col2 = st.columns(2)
+                with col1:
+                    select_all = st.button("すべて選択")
+                with col2:
+                    select_none = st.button("選択解除")
+                
+                if select_all:
+                    selected_problems = saved_problems
+                elif select_none:
+                    selected_problems = []
+                else:
+                    selected_problems = saved_problems  # デフォルトで全選択
+                    
+            elif selection_method == "最近作成した問題":
+                recent_count = st.number_input("最近作成した問題数", min_value=1, max_value=len(saved_problems), value=5)
+                selected_problems = sorted(saved_problems, key=lambda x: x.created_at, reverse=True)[:recent_count]
+            
+            if not selected_problems:
+                st.info("採点する問題を選択してください。")
+                return
+        
+            # 採点フォーム
+            st.subheader(f"✏️ 採点 ({len(selected_problems)}問)")
+            
+            with st.form("manual_scoring_form"):
+                scores = {}
+                
+                for i, problem in enumerate(selected_problems):
+                    st.write(f"**問題 {i+1}**: {problem.sentence}")
+                    st.write(f"**回答漢字**: {problem.answer_kanji} ({problem.reading})")
+                    
+                    # 正誤選択
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        correct = st.radio(f"正誤", ["正解", "不正解"], key=f"manual_score_{problem.id}", horizontal=True)
+                    with col2:
+                        if correct == "不正解":
+                            mistake_type = st.selectbox(
+                                "間違いの種類",
+                                ["読み間違い", "漢字間違い", "その他"],
+                                key=f"manual_mistake_{problem.id}"
+                            )
+                        else:
+                            mistake_type = None
+                    with col3:
+                        notes = st.text_input("メモ", key=f"manual_notes_{problem.id}", placeholder="学習メモ（任意）")
+                    
+                    scores[problem.id] = {
+                        'is_correct': correct == "正解",
+                        'mistake_type': mistake_type,
+                        'notes': notes
+                    }
+                    
+                    st.divider()
+                
+                # 採点結果の保存
+                submitted = st.form_submit_button("💾 採点結果を保存", type="primary")
+                
+                if submitted:
+                    try:
+                        # 試行データを保存
+                        saved_count = 0
+                        for problem_id, score_data in scores.items():
+                            attempt = Attempt(
+                                problem_id=problem_id,
+                                is_correct=score_data['is_correct']
+                            )
+                            if st.session_state.attempt_storage.save_attempt(attempt):
+                                saved_count += 1
+                        
+                        if saved_count > 0:
+                            st.success(f"✅ {saved_count}問の採点結果を保存しました！")
+                            
+                            # 採点結果の表示
+                            correct_count = sum(1 for score in scores.values() if score['is_correct'])
+                            total_count = len(scores)
+                            accuracy = (correct_count / total_count) * 100 if total_count > 0 else 0
+                            
+                            st.subheader("📊 採点結果")
+                            col1, col2, col3 = st.columns(3)
+                            with col1:
+                                st.metric("正解数", correct_count)
+                            with col2:
+                                st.metric("不正解数", total_count - correct_count)
+                            with col3:
+                                st.metric("正答率", f"{accuracy:.1f}%")
+                            
+                            # 間違いの分析
+                            if total_count - correct_count > 0:
+                                st.subheader("🔍 間違いの分析")
+                                mistake_analysis = {}
+                                for score in scores.values():
+                                    if not score['is_correct'] and score['mistake_type']:
+                                        mistake_type = score['mistake_type']
+                                        mistake_analysis[mistake_type] = mistake_analysis.get(mistake_type, 0) + 1
+                                
+                                if mistake_analysis:
+                                    for mistake_type, count in mistake_analysis.items():
+                                        st.write(f"**{mistake_type}**: {count}問")
+                        else:
+                            st.error("❌ 採点結果の保存に失敗しました。")
+                            
+                    except Exception as e:
+                        st.error(f"❌ 採点結果の保存に失敗しました: {e}")
+        
+        except Exception as e:
+            st.error(f"❌ 採点ページの読み込みに失敗しました: {e}")
 
 def show_history_page():
     """履歴管理ページ"""
@@ -531,26 +675,56 @@ def show_history_page():
         with col3:
             show_count = st.number_input("表示件数", min_value=5, max_value=100, value=20)
         
-        # 重複チェック機能
-        st.subheader("🔍 重複チェック")
-        col1, col2, col3 = st.columns(3)
+        # 学習統計の表示
+        st.subheader("📊 学習統計")
+        # 問題統計の初期化
+        problem_stats = {}
         
-        with col1:
-            check_sentence = st.text_input("問題文", placeholder="重複チェック用の問題文")
-        with col2:
-            check_kanji = st.text_input("回答漢字", placeholder="重複チェック用の漢字")
-        with col3:
-            check_reading = st.text_input("読み", placeholder="重複チェック用の読み")
-        
-        if st.button("🔍 重複チェック実行", type="secondary"):
-            if check_sentence and check_kanji and check_reading:
-                is_duplicate, duplicate_message = check_duplicate_problem(check_sentence, check_kanji, check_reading)
-                if is_duplicate:
-                    st.warning(f"⚠️ 重複が見つかりました: {duplicate_message}")
-                else:
-                    st.success("✅ 重複は見つかりませんでした。")
+        try:
+            attempts = st.session_state.attempt_storage.load_attempts()
+            if attempts:
+                # 問題別の統計を計算
+                for attempt in attempts:
+                    problem_id = attempt.problem_id
+                    if problem_id not in problem_stats:
+                        problem_stats[problem_id] = {
+                            'correct_count': 0,
+                            'total_count': 0,
+                            'last_attempted': None
+                        }
+                    
+                    problem_stats[problem_id]['total_count'] += 1
+                    if attempt.is_correct:
+                        problem_stats[problem_id]['correct_count'] += 1
+                    
+                    # 最後の試行日を更新
+                    if (problem_stats[problem_id]['last_attempted'] is None or 
+                        attempt.attempted_at > problem_stats[problem_id]['last_attempted']):
+                        problem_stats[problem_id]['last_attempted'] = attempt.attempted_at
+                
+                # 統計情報を表示
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("総問題数", len(saved_problems))
+                with col2:
+                    st.metric("採点済み問題数", len(problem_stats))
+                with col3:
+                    total_attempts = len(attempts)
+                    st.metric("総試行回数", total_attempts)
+                with col4:
+                    if total_attempts > 0:
+                        correct_attempts = sum(1 for a in attempts if a.is_correct)
+                        accuracy = (correct_attempts / total_attempts) * 100
+                        st.metric("全体正答率", f"{accuracy:.1f}%")
+                    else:
+                        st.metric("全体正答率", "0.0%")
             else:
-                st.info("重複チェックするには、問題文、回答漢字、読みをすべて入力してください。")
+                st.info("まだ採点データがありません。採点ページで採点を行ってください。")
+        except Exception as e:
+            app_logger.exception(f"学習統計の読み込みに失敗しました: {e}")
+            st.warning(f"学習統計の読み込みに失敗しました: {e}")
+            # エラーが発生した場合でも空の辞書を維持
+            problem_stats = {}
         
         # 問題のフィルタリング
         filtered_problems = saved_problems
@@ -667,33 +841,78 @@ def show_history_page():
         # 問題一覧の表示
         st.subheader(f"📋 問題一覧 ({len(display_problems)}件)")
         
-        for i, problem in enumerate(display_problems):
-            with st.expander(f"問題 {i+1}: {problem.answer_kanji} ({problem.reading}) - {problem.created_at.strftime('%Y/%m/%d %H:%M')}"):
-                col1, col2 = st.columns([3, 1])
+        try:
+            for i, problem in enumerate(display_problems):
+                # 問題の統計情報を取得（安全にアクセス）
+                if isinstance(problem_stats, dict):
+                    problem_stat = problem_stats.get(problem.id, {
+                        'correct_count': 0,
+                        'total_count': 0,
+                        'last_attempted': None
+                    })
+                else:
+                    # problem_statsが辞書でない場合のフォールバック
+                    problem_stat = {
+                        'correct_count': 0,
+                        'total_count': 0,
+                        'last_attempted': None
+                    }
                 
-                with col1:
-                    st.write(f"**問題文**: {problem.sentence}")
-                    st.write(f"**回答漢字**: {problem.answer_kanji}")
-                    st.write(f"**読み**: {problem.reading}")
-                    st.write(f"**作成日時**: {problem.created_at.strftime('%Y年%m月%d日 %H:%M')}")
-                    
-                    # プレビュー表示
-                    renderer = TextRenderer()
-                    preview = renderer.create_preview(problem)
-                    st.write(f"**プレビュー**: {preview}")
+                # 正答率を計算
+                accuracy = 0
+                if problem_stat['total_count'] > 0:
+                    accuracy = (problem_stat['correct_count'] / problem_stat['total_count']) * 100
                 
-                with col2:
-                    # 操作ボタン
-                    if st.button("📄 印刷用ページ", key=f"print_{problem.id}"):
-                        st.session_state.selected_problem_for_print = problem
-                        st.rerun()
+                # 最後の試行日をフォーマット
+                last_attempted_str = "未採点"
+                if problem_stat['last_attempted']:
+                    last_attempted_str = problem_stat['last_attempted'].strftime('%Y/%m/%d %H:%M')
+                
+                # 問題のタイトルに統計情報を含める
+                title = f"問題 {i+1}: {problem.answer_kanji} ({problem.reading}) - 正答率: {accuracy:.1f}% ({problem_stat['correct_count']}/{problem_stat['total_count']})"
+                
+                with st.expander(title):
+                    col1, col2 = st.columns([3, 1])
                     
-                    if st.button("🗑️ 削除", key=f"delete_{problem.id}"):
-                        if st.session_state.problem_storage.delete_problem(problem.id):
-                            st.success("問題を削除しました")
+                    with col1:
+                        st.write(f"**問題文**: {problem.sentence}")
+                        st.write(f"**回答漢字**: {problem.answer_kanji}")
+                        st.write(f"**読み**: {problem.reading}")
+                        st.write(f"**作成日時**: {problem.created_at.strftime('%Y年%m月%d日 %H:%M')}")
+                        
+                        # 学習統計情報
+                        st.write("**学習統計**:")
+                        col_stat1, col_stat2, col_stat3 = st.columns(3)
+                        with col_stat1:
+                            st.write(f"正解回数: {problem_stat['correct_count']}")
+                        with col_stat2:
+                            st.write(f"試行回数: {problem_stat['total_count']}")
+                        with col_stat3:
+                            st.write(f"正答率: {accuracy:.1f}%")
+                        
+                        st.write(f"**最後の採点日**: {last_attempted_str}")
+                        
+                        # プレビュー表示
+                        renderer = TextRenderer()
+                        preview = renderer.create_preview(problem)
+                        st.write(f"**プレビュー**: {preview}")
+                    
+                    with col2:
+                        # 操作ボタン
+                        if st.button("📄 印刷用ページ", key=f"print_{problem.id}"):
+                            st.session_state.selected_problem_for_print = problem
                             st.rerun()
-                        else:
-                            st.error("削除に失敗しました")
+                        
+                        if st.button("🗑️ 削除", key=f"delete_{problem.id}"):
+                            if st.session_state.problem_storage.delete_problem(problem.id):
+                                st.success("問題を削除しました")
+                                st.rerun()
+                            else:
+                                st.error("削除に失敗しました")
+        
+        except Exception as e:
+            app_logger.exception(f"問題一覧の表示に失敗しました: {e}")
+            st.error(f"問題一覧の表示に失敗しました: {e}")
         
         # ページネーション
         if len(filtered_problems) > show_count:
