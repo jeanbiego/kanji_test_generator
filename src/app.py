@@ -4,13 +4,15 @@ Streamlitエントリーポイント
 """
 
 import streamlit as st
-from src.modules.models import Problem, Attempt
-from src.modules.storage import ProblemStorage, AttemptStorage
-from src.modules.rendering import TextRenderer
-from src.modules.validators import InputValidator
-from src.modules.utils import get_current_datetime
-from src.modules.logger import app_logger
-from src.modules.error_handler import ErrorHandler, error_handler, safe_execute
+import pandas as pd
+from datetime import datetime
+from modules.models import Problem, Attempt
+from modules.storage import ProblemStorage, AttemptStorage
+from modules.rendering import TextRenderer
+from modules.validators import InputValidator
+from modules.utils import get_current_datetime
+from modules.logger import app_logger
+from modules.error_handler import ErrorHandler, error_handler, safe_execute
 
 @error_handler("アプリケーション初期化中")
 def main():
@@ -67,9 +69,14 @@ def main():
         st.session_state.current_page = "履歴管理"
         st.rerun()
     
-    # 現在のページを表示
-    st.sidebar.markdown("---")
-    st.sidebar.markdown(f"**現在のページ**: {st.session_state.current_page}")
+    if st.sidebar.button("🔍 問題検索", use_container_width=True):
+        st.session_state.current_page = "問題検索"
+        st.rerun()
+    
+    if st.sidebar.button("📈 統計", use_container_width=True):
+        st.session_state.current_page = "統計"
+        st.rerun()
+    
     
     page = st.session_state.current_page
     
@@ -82,6 +89,10 @@ def main():
         show_scoring_page()
     elif page == "履歴管理":
         show_history_page()
+    elif page == "問題検索":
+        show_search_page()
+    elif page == "統計":
+        show_statistics_page()
 
 def show_problem_creation_page():
     """問題作成ページの表示"""
@@ -920,6 +931,455 @@ def show_history_page():
         
     except Exception as e:
         st.error(f"❌ 履歴の読み込みに失敗しました: {e}")
+
+
+def show_search_page():
+    """問題検索ページの表示"""
+    st.header("🔍 問題検索")
+    
+    try:
+        from src.modules.search import SearchManager
+        
+        # 検索マネージャーの初期化
+        if 'search_manager' not in st.session_state:
+            st.session_state.search_manager = SearchManager()
+        
+        search_manager = st.session_state.search_manager
+        
+        # 検索フォーム
+        with st.form("search_form"):
+            st.subheader("検索条件")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # 基本検索
+                query = st.text_input(
+                    "検索クエリ",
+                    placeholder="例：独創的、アーティスト、どくそうてき",
+                    help="問題文、回答漢字、読みのいずれかで検索できます"
+                )
+                
+                search_type = st.selectbox(
+                    "検索対象",
+                    ["all", "problem_text", "answer", "reading"],
+                    format_func=lambda x: {
+                        "all": "すべて",
+                        "problem_text": "問題文のみ",
+                        "answer": "回答漢字のみ",
+                        "reading": "読みのみ"
+                    }[x]
+                )
+                
+                use_regex = st.checkbox("正規表現を使用", help="高度な検索パターンを使用できます")
+            
+            with col2:
+                # 日付範囲フィルタ
+                st.write("**日付範囲**")
+                col_date1, col_date2 = st.columns(2)
+                with col_date1:
+                    start_date = st.date_input("開始日", value=None, key="search_start_date")
+                with col_date2:
+                    end_date = st.date_input("終了日", value=None, key="search_end_date")
+                
+                # 正答率フィルタ
+                st.write("**正答率範囲**")
+                col_acc1, col_acc2 = st.columns(2)
+                with col_acc1:
+                    min_accuracy = st.number_input("最小正答率(%)", min_value=0.0, max_value=100.0, value=None, step=0.1, key="search_min_acc")
+                with col_acc2:
+                    max_accuracy = st.number_input("最大正答率(%)", min_value=0.0, max_value=100.0, value=None, step=0.1, key="search_max_acc")
+            
+            # 高度なフィルタ
+            with st.expander("高度なフィルタ"):
+                col3, col4 = st.columns(2)
+                
+                with col3:
+                    # 試行回数フィルタ
+                    st.write("**試行回数範囲**")
+                    col_att1, col_att2 = st.columns(2)
+                    with col_att1:
+                        min_attempts = st.number_input("最小試行回数", min_value=0, value=None, key="search_min_att")
+                    with col_att2:
+                        max_attempts = st.number_input("最大試行回数", min_value=0, value=None, key="search_max_att")
+                
+                with col4:
+                    # 間違いの種類フィルタ
+                    st.write("**間違いの種類**")
+                    mistake_types = st.multiselect(
+                        "間違いの種類を選択",
+                        ["読み間違い", "書き間違い", "意味理解不足", "その他"],
+                        key="search_mistake_types"
+                    )
+            
+            # 検索実行ボタン
+            search_button = st.form_submit_button("🔍 検索実行", use_container_width=True)
+        
+        # 検索実行
+        if search_button:
+            try:
+                with st.spinner("検索中..."):
+                    results = search_manager.advanced_search(
+                        query=query,
+                        search_type=search_type,
+                        use_regex=use_regex,
+                        start_date=start_date,
+                        end_date=end_date,
+                        min_accuracy=min_accuracy,
+                        max_accuracy=max_accuracy,
+                        min_attempts=min_attempts,
+                        max_attempts=max_attempts,
+                        mistake_types=mistake_types if mistake_types else None
+                    )
+                    
+                    st.session_state.search_results = results
+                    st.session_state.search_stats = search_manager.get_search_statistics(results)
+                    
+                    if results:
+                        st.success(f"✅ 検索完了: {len(results)}件の結果が見つかりました")
+                    else:
+                        st.warning("⚠️ 検索条件に一致する問題が見つかりませんでした")
+                        
+            except Exception as e:
+                app_logger.error(f"検索実行中にエラーが発生しました: {e}")
+                st.error(f"❌ 検索中にエラーが発生しました: {e}")
+        
+        # 検索結果の表示
+        if 'search_results' in st.session_state and st.session_state.search_results:
+            st.subheader("📋 検索結果")
+            
+            # 統計情報の表示
+            if 'search_stats' in st.session_state:
+                stats = st.session_state.search_stats
+                col1, col2, col3, col4 = st.columns(4)
+                
+                with col1:
+                    st.metric("総問題数", stats['total_count'])
+                with col2:
+                    st.metric("平均正答率", f"{stats['average_accuracy']:.1f}%")
+                with col3:
+                    st.metric("総試行回数", stats['total_attempts'])
+                with col4:
+                    if stats['date_range']:
+                        date_range = f"{stats['date_range']['earliest']} ～ {stats['date_range']['latest']}"
+                    else:
+                        date_range = "なし"
+                    st.metric("日付範囲", date_range)
+            
+            # 結果の表示
+            results = st.session_state.search_results
+            
+            # 表示件数の選択
+            col1, col2 = st.columns([1, 3])
+            with col1:
+                show_count = st.selectbox("表示件数", [10, 25, 50, 100], index=1)
+            with col2:
+                st.write("")  # スペーサー
+            
+            # 問題一覧の表示
+            for i, problem in enumerate(results[:show_count]):
+                # 問題の統計情報を取得
+                attempts = st.session_state.attempt_storage.load_attempts()
+                problem_attempts = [a for a in attempts if a.problem_id == problem.id]
+                
+                if problem_attempts:
+                    correct_count = sum(1 for a in problem_attempts if a.is_correct)
+                    accuracy = (correct_count / len(problem_attempts)) * 100
+                    last_attempted = max(problem_attempts, key=lambda x: x.timestamp).timestamp
+                else:
+                    accuracy = 0.0
+                    last_attempted = None
+                
+                # 問題のタイトルに統計情報を含める
+                title = f"問題 {i+1}: {problem.answer_kanji} ({problem.reading}) - 正答率: {accuracy:.1f}% ({correct_count}/{len(problem_attempts)})"
+                
+                with st.expander(title):
+                    col1, col2 = st.columns([3, 1])
+                    
+                    with col1:
+                        st.write(f"**問題文**: {problem.sentence}")
+                        st.write(f"**回答漢字**: {problem.answer_kanji}")
+                        st.write(f"**読み**: {problem.reading}")
+                        st.write(f"**作成日時**: {problem.created_at.strftime('%Y年%m月%d日 %H:%M')}")
+                        
+                        # 学習統計情報
+                        if problem_attempts:
+                            st.write(f"**試行回数**: {len(problem_attempts)}回")
+                            st.write(f"**正答回数**: {correct_count}回")
+                            st.write(f"**正答率**: {accuracy:.1f}%")
+                            
+                            if last_attempted:
+                                st.write(f"**最後の試行**: {last_attempted.strftime('%Y年%m月%d日 %H:%M')}")
+                        else:
+                            st.write("**試行回数**: 0回（未採点）")
+                    
+                    with col2:
+                        # 問題の操作ボタン
+                        if st.button(f"印刷", key=f"print_{problem.id}"):
+                            st.session_state.printed_problems = [problem]
+                            st.session_state.current_page = "印刷用ページ表示"
+                            st.rerun()
+                        
+                        if st.button(f"採点", key=f"score_{problem.id}"):
+                            st.session_state.printed_problems = [problem]
+                            st.session_state.current_page = "採点"
+                            st.rerun()
+            
+            # ページネーション
+            if len(results) > show_count:
+                st.info(f"表示中: 1-{show_count}件 / 全{len(results)}件")
+        
+        elif 'search_results' in st.session_state and not st.session_state.search_results:
+            st.info("検索条件を入力して「検索実行」ボタンを押してください")
+        
+    except Exception as e:
+        app_logger.error(f"検索ページの表示中にエラーが発生しました: {e}")
+        st.error(f"❌ 検索ページの表示に失敗しました: {e}")
+
+
+def show_statistics_page():
+    """統計ページの表示"""
+    st.header("📈 学習統計")
+    
+    try:
+        from src.modules.statistics import StatisticsManager
+        
+        # 統計マネージャーの初期化
+        if 'statistics_manager' not in st.session_state:
+            st.session_state.statistics_manager = StatisticsManager()
+        
+        statistics_manager = st.session_state.statistics_manager
+        
+        # 統計データの取得
+        with st.spinner("統計データを計算中..."):
+            stats = statistics_manager.get_comprehensive_statistics()
+            charts = statistics_manager.get_visualization_data()
+        
+        # 概要統計の表示
+        st.subheader("📊 学習概要")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric(
+                "総問題数",
+                stats['overview']['total_problems'],
+                help="登録されている問題の総数"
+            )
+        
+        with col2:
+            st.metric(
+                "総試行回数",
+                stats['overview']['total_attempts'],
+                help="これまでの採点試行の総数"
+            )
+        
+        with col3:
+            st.metric(
+                "全体正答率",
+                f"{stats['overview']['overall_accuracy']:.1f}%",
+                help="全試行の正答率"
+            )
+        
+        with col4:
+            # 学習日数の計算
+            daily_data = stats['daily_statistics']['daily_data']
+            learning_days = len(set(d['date'] for d in daily_data))
+            st.metric(
+                "学習日数",
+                learning_days,
+                help="実際に学習を行った日数"
+            )
+        
+        # タブで統計を分ける
+        tab1, tab2, tab3, tab4 = st.tabs(["📈 正答率分析", "📅 日別進捗", "❌ 間違い分析", "📊 学習曲線"])
+        
+        with tab1:
+            st.subheader("問題別正答率")
+            
+            if charts.get('accuracy_chart'):
+                st.plotly_chart(charts['accuracy_chart'], use_container_width=True)
+            else:
+                st.info("正答率データがありません")
+            
+            # 問題別詳細統計
+            if stats['problem_statistics']:
+                st.subheader("問題別詳細")
+                
+                # データフレームの作成
+                problem_data = []
+                for problem_id, problem_stat in stats['problem_statistics'].items():
+                    problem = problem_stat['problem']
+                    problem_data.append({
+                        '問題': f"{problem.answer_kanji} ({problem.reading})",
+                        '問題文': problem.sentence,
+                        '正答回数': problem_stat['correct_count'],
+                        '試行回数': problem_stat['total_count'],
+                        '正答率': f"{problem_stat['accuracy']:.1f}%",
+                        '最後の試行': problem_stat['last_attempted'].strftime('%Y/%m/%d') if problem_stat['last_attempted'] else '未採点'
+                    })
+                
+                df = pd.DataFrame(problem_data)
+                st.dataframe(df, use_container_width=True)
+        
+        with tab2:
+            st.subheader("日別学習進捗")
+            
+            if charts.get('daily_progress_chart'):
+                st.plotly_chart(charts['daily_progress_chart'], use_container_width=True)
+            else:
+                st.info("日別進捗データがありません")
+            
+            # 日別詳細データ
+            if stats['daily_statistics']['daily_data']:
+                st.subheader("日別詳細")
+                
+                daily_df = pd.DataFrame(stats['daily_statistics']['daily_data'])
+                daily_df['date'] = pd.to_datetime(daily_df['date'])
+                daily_df = daily_df.sort_values('date')
+                
+                st.dataframe(daily_df, use_container_width=True)
+        
+        with tab3:
+            st.subheader("間違いの種類分析")
+            
+            if charts.get('mistake_distribution_chart'):
+                st.plotly_chart(charts['mistake_distribution_chart'], use_container_width=True)
+            else:
+                st.info("間違いデータがありません")
+            
+            # 間違い分析の詳細
+            mistake_analysis = stats['mistake_analysis']
+            
+            if mistake_analysis['common_mistakes']:
+                st.subheader("よくある間違い")
+                
+                mistake_data = []
+                for mistake_type, count in mistake_analysis['common_mistakes']:
+                    mistake_data.append({
+                        '間違いの種類': mistake_type,
+                        '回数': count
+                    })
+                
+                mistake_df = pd.DataFrame(mistake_data)
+                st.dataframe(mistake_df, use_container_width=True)
+            
+            if mistake_analysis['improvement_areas']:
+                st.subheader("改善が必要な領域")
+                
+                improvement_data = []
+                for area in mistake_analysis['improvement_areas']:
+                    improvement_data.append({
+                        '間違いの種類': area['mistake_type'],
+                        '間違い回数': area['count'],
+                        '対象問題数': area['unique_problems']
+                    })
+                
+                improvement_df = pd.DataFrame(improvement_data)
+                st.dataframe(improvement_df, use_container_width=True)
+        
+        with tab4:
+            st.subheader("学習曲線")
+            
+            if charts.get('learning_curve_chart'):
+                st.plotly_chart(charts['learning_curve_chart'], use_container_width=True)
+            else:
+                st.info("学習曲線データがありません")
+            
+            # 学習進捗の詳細
+            learning_progress = stats['learning_progress']
+            
+            if learning_progress['learning_curve']:
+                st.subheader("学習進捗詳細")
+                
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    st.metric(
+                        "期間中の試行回数",
+                        learning_progress['total_attempts'],
+                        help=f"過去{learning_progress['period_days']}日間の試行回数"
+                    )
+                
+                with col2:
+                    st.metric(
+                        "期間中の正答率",
+                        f"{learning_progress['accuracy']:.1f}%",
+                        help=f"過去{learning_progress['period_days']}日間の正答率"
+                    )
+                
+                with col3:
+                    st.metric(
+                        "学習一貫性",
+                        f"{learning_progress['consistency_score']:.1f}%",
+                        help="学習日数 / 期間日数"
+                    )
+                
+                # 学習曲線データの表示
+                curve_df = pd.DataFrame(learning_progress['learning_curve'])
+                curve_df['date'] = pd.to_datetime(curve_df['date'])
+                curve_df = curve_df.sort_values('date')
+                
+                st.dataframe(curve_df, use_container_width=True)
+        
+        # データエクスポート機能
+        st.subheader("📥 データエクスポート")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("📊 統計データをCSVでダウンロード"):
+                # 統計データをCSVとして出力
+                import io
+                
+                # 問題別統計のCSV
+                if stats['problem_statistics']:
+                    problem_data = []
+                    for problem_id, problem_stat in stats['problem_statistics'].items():
+                        problem = problem_stat['problem']
+                        problem_data.append({
+                            '問題ID': problem.id,
+                            '回答漢字': problem.answer_kanji,
+                            '読み': problem.reading,
+                            '問題文': problem.sentence,
+                            '正答回数': problem_stat['correct_count'],
+                            '試行回数': problem_stat['total_count'],
+                            '正答率': problem_stat['accuracy'],
+                            '最後の試行': problem_stat['last_attempted'].strftime('%Y-%m-%d %H:%M') if problem_stat['last_attempted'] else '未採点'
+                        })
+                    
+                    problem_df = pd.DataFrame(problem_data)
+                    csv = problem_df.to_csv(index=False, encoding='utf-8-sig')
+                    
+                    st.download_button(
+                        label="問題別統計をダウンロード",
+                        data=csv,
+                        file_name=f"problem_statistics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                        mime="text/csv"
+                    )
+        
+        with col2:
+            if st.button("📅 日別進捗をCSVでダウンロード"):
+                # 日別進捗のCSV
+                if stats['daily_statistics']['daily_data']:
+                    daily_df = pd.DataFrame(stats['daily_statistics']['daily_data'])
+                    daily_df['date'] = pd.to_datetime(daily_df['date'])
+                    daily_df = daily_df.sort_values('date')
+                    daily_df['date'] = daily_df['date'].dt.strftime('%Y-%m-%d')
+                    
+                    csv = daily_df.to_csv(index=False, encoding='utf-8-sig')
+                    
+                    st.download_button(
+                        label="日別進捗をダウンロード",
+                        data=csv,
+                        file_name=f"daily_progress_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                        mime="text/csv"
+                    )
+        
+    except Exception as e:
+        app_logger.error(f"統計ページの表示中にエラーが発生しました: {e}")
+        st.error(f"❌ 統計ページの表示に失敗しました: {e}")
+
 
 if __name__ == "__main__":
     main()

@@ -325,6 +325,18 @@
 - **内容**: 重複判定の削除、採点結果の反映、学習進捗の記録
 - **実装方針**: [20250127_implementation_history_enhancement.md](docs/20250127_implementation_history_enhancement.md)
 
+✅ **課題15**: 問題検索機能の実装
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 基本検索・高度検索・フィルタリング機能、検索UI
+- **実装方針**: [20250127_implementation_search_functionality.md](docs/20250127_implementation_search_functionality.md)
+
+✅ **課題16**: 統計機能の実装
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 統計計算・可視化・分析機能、データエクスポート
+- **実装方針**: [20250127_implementation_statistics_functionality.md](docs/20250127_implementation_statistics_functionality.md)
+
 ### ブロッカー
 **現在、実装を阻害している問題はありません**
 

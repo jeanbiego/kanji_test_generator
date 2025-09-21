@@ -18,7 +18,34 @@ pip install -r requirements.txt
 ```
 
 ## 起動方法
+
+### バッチファイルを使用した起動（推奨）
+Windows環境では、以下のバッチファイルを使用して簡単に起動できます：
+
+#### 基本起動
 ```bash
+start_app.bat
+```
+
+#### 詳細設定版
+```bash
+start_app_advanced.bat
+```
+
+#### 開発モード
+```bash
+start_app_dev.bat
+```
+
+### 手動起動
+```bash
+# 仮想環境の有効化
+venv\Scripts\activate
+
+# 依存関係のインストール
+pip install -r requirements.txt
+
+# アプリの起動
 streamlit run src/app.py
 ```
 

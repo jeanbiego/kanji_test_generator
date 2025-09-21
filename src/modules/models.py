@@ -53,13 +53,19 @@ class Attempt:
     problem_id: str
     attempted_at: datetime
     is_correct: bool
+    mistake_type: str
+    learning_memo: str
+    timestamp: datetime
     
-    def __init__(self, problem_id: str, is_correct: bool, 
-                 id: Optional[str] = None, attempted_at: Optional[datetime] = None):
+    def __init__(self, problem_id: str, is_correct: bool, mistake_type: str = "なし", learning_memo: str = "",
+                 id: Optional[str] = None, attempted_at: Optional[datetime] = None, timestamp: Optional[datetime] = None):
         self.id = id or str(uuid.uuid4())
         self.problem_id = problem_id
         self.attempted_at = attempted_at or datetime.now()
         self.is_correct = is_correct
+        self.mistake_type = mistake_type
+        self.learning_memo = learning_memo
+        self.timestamp = timestamp or datetime.now()
     
     def to_dict(self) -> dict:
         """辞書形式に変換"""
@@ -67,7 +73,10 @@ class Attempt:
             'id': self.id,
             'problem_id': self.problem_id,
             'attempted_at': self.attempted_at.isoformat(),
-            'is_correct': self.is_correct
+            'is_correct': self.is_correct,
+            'mistake_type': self.mistake_type,
+            'learning_memo': self.learning_memo,
+            'timestamp': self.timestamp.isoformat()
         }
     
     @classmethod
@@ -77,5 +86,8 @@ class Attempt:
             id=data['id'],
             problem_id=data['problem_id'],
             is_correct=data['is_correct'] == 'True' if isinstance(data['is_correct'], str) else bool(data['is_correct']),
-            attempted_at=datetime.fromisoformat(data['attempted_at'])
+            attempted_at=datetime.fromisoformat(data['attempted_at']),
+            mistake_type=data.get('mistake_type', 'なし'),
+            learning_memo=data.get('learning_memo', ''),
+            timestamp=datetime.fromisoformat(data.get('timestamp', data['attempted_at']))
         )
