@@ -1,80 +1,79 @@
 @echo off
-chcp 65001 >nul
-REM Kanji Test Generator アプリ起動バッチファイル
-REM 作成日: 2025-01-27
+REM Kanji Test Generator Application Startup Batch File
+REM Created: 2025-01-27
 
 echo ========================================
-echo Kanji Test Generator アプリ起動中...
+echo Starting Kanji Test Generator App...
 echo ========================================
 
-REM 現在のディレクトリを取得
+REM Get current directory
 set "CURRENT_DIR=%~dp0"
-echo ワークディレクトリ: %CURRENT_DIR%
+echo Working Directory: %CURRENT_DIR%
 
-REM ワークディレクトリに移動
+REM Change to working directory
 cd /d "%CURRENT_DIR%"
 if %errorlevel% neq 0 (
-    echo エラー: ワークディレクトリの移動に失敗しました
+    echo Error: Failed to change working directory
     pause
     exit /b 1
 )
 
-REM 仮想環境の存在確認
+REM Check virtual environment existence
 if not exist "venv\Scripts\activate.bat" (
-    echo エラー: 仮想環境が見つかりません
-    echo 仮想環境を作成してください: python -m venv venv
+    echo Error: Virtual environment not found
+    echo Please create virtual environment: python -m venv venv
     pause
     exit /b 1
 )
 
-REM 仮想環境の有効化
-echo 仮想環境を有効化中...
+REM Activate virtual environment
+echo Activating virtual environment...
 call venv\Scripts\activate.bat
 if %errorlevel% neq 0 (
-    echo エラー: 仮想環境の有効化に失敗しました
+    echo Error: Failed to activate virtual environment
     pause
     exit /b 1
 )
 
-REM Pythonの存在確認
+REM Check Python existence
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo エラー: Pythonが見つかりません
-    echo 仮想環境が正しく設定されていない可能性があります
+    echo Error: Python not found
+    echo Virtual environment may not be configured correctly
     pause
     exit /b 1
 )
 
-REM 依存関係の確認
+REM Check dependencies
 if not exist "requirements.txt" (
-    echo 警告: requirements.txtが見つかりません
-    echo 依存関係のインストールをスキップします
+    echo Warning: requirements.txt not found
+    echo Skipping dependency installation
 ) else (
-    echo 依存関係を確認中...
+    echo Checking dependencies...
     pip install -r requirements.txt --quiet
     if %errorlevel% neq 0 (
-        echo 警告: 依存関係のインストールに失敗しました
-        echo アプリの起動を続行します...
+        echo Warning: Failed to install dependencies
+        echo Continuing with app startup...
     )
 )
 
-REM Pythonパスの設定
-set PYTHONPATH=%APP_DIR%
-echo Pythonパスを設定しました: %PYTHONPATH%
+REM Set Python path
+set PYTHONPATH=%CURRENT_DIR%
+echo Python path set: %PYTHONPATH%
 
-REM アプリの起動
+REM Start application
 echo ========================================
-echo アプリを起動しています...
+echo Starting application...
 echo ========================================
-echo ブラウザが自動的に開きます
-echo アプリを停止するには Ctrl+C を押してください
+echo Browser will open automatically
+echo Press Ctrl+C to stop the application
 echo ========================================
 
-REM Streamlitアプリの起動
+REM Start Streamlit application
 streamlit run src/app.py --server.port 8501 --server.address localhost
 
-REM アプリ終了後の処理
+REM Post-application cleanup
 echo ========================================
-echo アプリが終了しました
+echo Application has been terminated
 echo ========================================
 pause

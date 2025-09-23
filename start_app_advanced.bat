@@ -1,35 +1,34 @@
 @echo off
-chcp 65001 >nul
-REM Kanji Test Generator アプリ起動バッチファイル（詳細版）
-REM 作成日: 2025-01-27
+REM Kanji Test Generator Application Startup Batch File (Advanced Version)
+REM Created: 2025-01-27
 
 setlocal enabledelayedexpansion
 
 echo ========================================
-echo Kanji Test Generator アプリ起動中...
+echo Starting Kanji Test Generator App...
 echo ========================================
 
-REM 設定変数
+REM Configuration variables
 set "APP_DIR=%~dp0"
 set "VENV_DIR=%APP_DIR%venv"
 set "APP_FILE=%APP_DIR%src\app.py"
 set "PORT=8501"
 set "HOST=localhost"
 
-REM ワークディレクトリに移動
-echo ワークディレクトリ: %APP_DIR%
+REM Change to working directory
+echo Working Directory: %APP_DIR%
 cd /d "%APP_DIR%"
 if %errorlevel% neq 0 (
-    echo エラー: ワークディレクトリの移動に失敗しました
+    echo Error: Failed to change working directory
     pause
     exit /b 1
 )
 
-REM 仮想環境の存在確認
+REM Check virtual environment existence
 if not exist "%VENV_DIR%\Scripts\activate.bat" (
-    echo エラー: 仮想環境が見つかりません
-    echo 仮想環境を作成してください: python -m venv venv
-    echo または、以下のコマンドを実行してください:
+    echo Error: Virtual environment not found
+    echo Please create virtual environment: python -m venv venv
+    echo Or run the following commands:
     echo   python -m venv venv
     echo   venv\Scripts\activate
     echo   pip install -r requirements.txt
@@ -37,77 +36,77 @@ if not exist "%VENV_DIR%\Scripts\activate.bat" (
     exit /b 1
 )
 
-REM 仮想環境の有効化
-echo 仮想環境を有効化中...
+REM Activate virtual environment
+echo Activating virtual environment...
 call "%VENV_DIR%\Scripts\activate.bat"
 if %errorlevel% neq 0 (
-    echo エラー: 仮想環境の有効化に失敗しました
+    echo Error: Failed to activate virtual environment
     pause
     exit /b 1
 )
 
-REM Pythonの存在確認
+REM Check Python existence
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo エラー: Pythonが見つかりません
-    echo 仮想環境が正しく設定されていない可能性があります
+    echo Error: Python not found
+    echo Virtual environment may not be configured correctly
     pause
     exit /b 1
 )
 
-REM アプリファイルの存在確認
+REM Check application file existence
 if not exist "%APP_FILE%" (
-    echo エラー: アプリファイルが見つかりません: %APP_FILE%
+    echo Error: Application file not found: %APP_FILE%
     pause
     exit /b 1
 )
 
-REM 依存関係の確認とインストール
+REM Check and install dependencies
 if exist "requirements.txt" (
-    echo 依存関係を確認中...
+    echo Checking dependencies...
     pip install -r requirements.txt --quiet
     if %errorlevel% neq 0 (
-        echo 警告: 依存関係のインストールに失敗しました
-        echo アプリの起動を続行します...
+        echo Warning: Failed to install dependencies
+        echo Continuing with app startup...
     ) else (
-        echo 依存関係の確認が完了しました
+        echo Dependency check completed
     )
 ) else (
-    echo 警告: requirements.txtが見つかりません
-    echo 依存関係のインストールをスキップします
+    echo Warning: requirements.txt not found
+    echo Skipping dependency installation
 )
 
-REM データディレクトリの確認
+REM Check data directory
 if not exist "data" (
-    echo データディレクトリを作成中...
+    echo Creating data directory...
     mkdir data
 )
 
-REM ログディレクトリの確認
+REM Check logs directory
 if not exist "logs" (
-    echo ログディレクトリを作成中...
+    echo Creating logs directory...
     mkdir logs
 )
 
-REM Pythonパスの設定
+REM Set Python path
 set PYTHONPATH=%APP_DIR%
-echo Pythonパスを設定しました: %PYTHONPATH%
+echo Python path set: %PYTHONPATH%
 
-REM アプリの起動
+REM Start application
 echo ========================================
-echo アプリを起動しています...
+echo Starting application...
 echo ========================================
-echo ブラウザが自動的に開きます
+echo Browser will open automatically
 echo URL: http://%HOST%:%PORT%
-echo アプリを停止するには Ctrl+C を押してください
+echo Press Ctrl+C to stop the application
 echo ========================================
 
-REM Streamlitアプリの起動
+REM Start Streamlit application
 streamlit run "%APP_FILE%" --server.port %PORT% --server.address %HOST% --server.headless false
 
-REM アプリ終了後の処理
+REM Post-application cleanup
 echo ========================================
-echo アプリが終了しました
+echo Application has been terminated
 echo ========================================
-echo 何かキーを押すとウィンドウが閉じます...
+echo Press any key to close window...
 pause >nul

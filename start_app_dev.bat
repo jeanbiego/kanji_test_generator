@@ -1,91 +1,90 @@
 @echo off
-chcp 65001 >nul
-REM Kanji Test Generator アプリ起動バッチファイル（開発用）
-REM 作成日: 2025-01-27
+REM Kanji Test Generator Application Startup Batch File (Development Mode)
+REM Created: 2025-01-27
 
 setlocal enabledelayedexpansion
 
 echo ========================================
-echo Kanji Test Generator アプリ起動中（開発モード）
+echo Starting Kanji Test Generator App (Development Mode)
 echo ========================================
 
-REM 設定変数
+REM Configuration variables
 set "APP_DIR=%~dp0"
 set "VENV_DIR=%APP_DIR%venv"
 set "APP_FILE=%APP_DIR%src\app.py"
 set "PORT=8501"
 set "HOST=localhost"
 
-REM ワークディレクトリに移動
-echo ワークディレクトリ: %APP_DIR%
+REM Change to working directory
+echo Working Directory: %APP_DIR%
 cd /d "%APP_DIR%"
 if %errorlevel% neq 0 (
-    echo エラー: ワークディレクトリの移動に失敗しました
+    echo Error: Failed to change working directory
     pause
     exit /b 1
 )
 
-REM 仮想環境の存在確認
+REM Check virtual environment existence
 if not exist "%VENV_DIR%\Scripts\activate.bat" (
-    echo エラー: 仮想環境が見つかりません
-    echo 仮想環境を作成してください: python -m venv venv
+    echo Error: Virtual environment not found
+    echo Please create virtual environment: python -m venv venv
     pause
     exit /b 1
 )
 
-REM 仮想環境の有効化
-echo 仮想環境を有効化中...
+REM Activate virtual environment
+echo Activating virtual environment...
 call "%VENV_DIR%\Scripts\activate.bat"
 if %errorlevel% neq 0 (
-    echo エラー: 仮想環境の有効化に失敗しました
+    echo Error: Failed to activate virtual environment
     pause
     exit /b 1
 )
 
-REM Pythonの存在確認
+REM Check Python existence
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo エラー: Pythonが見つかりません
+    echo Error: Python not found
     pause
     exit /b 1
 )
 
-REM 開発用依存関係のインストール
+REM Install development dependencies
 if exist "requirements.txt" (
-    echo 開発用依存関係をインストール中...
+    echo Installing development dependencies...
     pip install -r requirements.txt --quiet
     if %errorlevel% neq 0 (
-        echo 警告: 依存関係のインストールに失敗しました
+        echo Warning: Failed to install dependencies
     )
 )
 
-REM 開発用ツールのインストール（オプション）
-echo 開発用ツールを確認中...
+REM Install development tools (optional)
+echo Checking development tools...
 pip install black ruff mypy pytest --quiet >nul 2>&1
 
-REM コードフォーマットの実行（オプション）
-echo コードフォーマットを実行中...
+REM Run code formatting (optional)
+echo Running code formatting...
 black src/ --quiet >nul 2>&1
 ruff check src/ --fix --quiet >nul 2>&1
 
-REM Pythonパスの設定
+REM Set Python path
 set PYTHONPATH=%APP_DIR%
-echo Pythonパスを設定しました: %PYTHONPATH%
+echo Python path set: %PYTHONPATH%
 
-REM アプリの起動
+REM Start application
 echo ========================================
-echo アプリを起動しています（開発モード）...
+echo Starting application (Development Mode)...
 echo ========================================
-echo ブラウザが自動的に開きます
+echo Browser will open automatically
 echo URL: http://%HOST%:%PORT%
-echo アプリを停止するには Ctrl+C を押してください
+echo Press Ctrl+C to stop the application
 echo ========================================
 
-REM Streamlitアプリの起動（開発モード）
+REM Start Streamlit application (Development Mode)
 streamlit run "%APP_FILE%" --server.port %PORT% --server.address %HOST% --server.headless false --server.runOnSave true
 
-REM アプリ終了後の処理
+REM Post-application cleanup
 echo ========================================
-echo アプリが終了しました
+echo Application has been terminated
 echo ========================================
 pause

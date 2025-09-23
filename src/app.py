@@ -48,17 +48,17 @@ def main():
     # サイドバーでページ選択（常時表示）
     st.sidebar.title("📝 メニュー")
     
-    # 現在のページを取得（デフォルトは問題作成）
+    # 現在のページを取得（デフォルトは問題登録）
     if 'current_page' not in st.session_state:
-        st.session_state.current_page = "問題作成"
+        st.session_state.current_page = "問題登録"
     
     # ページ選択ボタン
-    if st.sidebar.button("📝 問題作成", use_container_width=True):
-        st.session_state.current_page = "問題作成"
+    if st.sidebar.button("📝 問題登録", use_container_width=True):
+        st.session_state.current_page = "問題登録"
         st.rerun()
     
-    if st.sidebar.button("🖨️ 印刷用ページ表示", use_container_width=True):
-        st.session_state.current_page = "印刷用ページ表示"
+    if st.sidebar.button("🖨️ 問題用紙作成", use_container_width=True):
+        st.session_state.current_page = "問題用紙作成"
         st.rerun()
     
     if st.sidebar.button("✅ 採点", use_container_width=True):
@@ -81,9 +81,9 @@ def main():
     page = st.session_state.current_page
     
     # ページに応じた表示
-    if page == "問題作成":
+    if page == "問題登録":
         show_problem_creation_page()
-    elif page == "印刷用ページ表示":
+    elif page == "問題用紙作成":
         show_print_page()
     elif page == "採点":
         show_scoring_page()
@@ -95,8 +95,8 @@ def main():
         show_statistics_page()
 
 def show_problem_creation_page():
-    """問題作成ページの表示"""
-    st.header("📝 問題作成")
+    """問題登録ページの表示"""
+    st.header("📝 問題登録")
     
     
     # 問題入力フォーム
@@ -219,7 +219,7 @@ def show_problem_creation_page():
                 st.session_state.problems = []
                 st.rerun()
         with col3:
-            if st.button("📄 印刷用ページ表示", type="primary"):
+            if st.button("📄 問題用紙作成", type="primary"):
                 st.session_state.show_print_page = True
                 st.rerun()
         
@@ -305,8 +305,8 @@ def save_all_problems():
         ErrorHandler.handle_error(e, "問題保存中")
 
 def show_print_page():
-    """印刷用ページ表示"""
-    st.header("🖨️ 印刷用ページ表示")
+    """問題用紙作成ページ"""
+    st.header("🖨️ 問題用紙作成")
     
     # 問題の選択方法
     problem_source = st.radio(
@@ -319,7 +319,7 @@ def show_print_page():
     
     if problem_source == "現在のセッションの問題":
         if not st.session_state.problems:
-            st.warning("印刷する問題がありません。問題作成ページで問題を追加してください。")
+            st.warning("印刷する問題がありません。問題登録ページで問題を追加してください。")
             return
         problems_to_print = st.session_state.problems
         
@@ -327,7 +327,7 @@ def show_print_page():
         try:
             saved_problems = st.session_state.problem_storage.load_problems()
             if not saved_problems:
-                st.warning("保存された問題がありません。問題作成ページで問題を作成してください。")
+                st.warning("保存された問題がありません。問題登録ページで問題を作成してください。")
                 return
             
             # 問題選択UI
@@ -530,7 +530,7 @@ def show_scoring_page():
             saved_problems = st.session_state.problem_storage.load_problems()
             
             if not saved_problems:
-                st.info("📝 採点する問題がありません。問題作成ページで問題を作成してください。")
+                st.info("📝 採点する問題がありません。問題登録ページで問題を作成してください。")
                 return
             
             # 問題選択
@@ -671,7 +671,7 @@ def show_history_page():
         saved_problems = st.session_state.problem_storage.load_problems()
         
         if not saved_problems:
-            st.info("📝 保存された問題がありません。問題作成ページで問題を作成してください。")
+            st.info("📝 保存された問題がありません。問題登録ページで問題を作成してください。")
             return
         
         # 検索・フィルタリング機能
@@ -1117,7 +1117,7 @@ def show_search_page():
                         # 問題の操作ボタン
                         if st.button(f"印刷", key=f"print_{problem.id}"):
                             st.session_state.printed_problems = [problem]
-                            st.session_state.current_page = "印刷用ページ表示"
+                            st.session_state.current_page = "問題用紙作成"
                             st.rerun()
                         
                         if st.button(f"採点", key=f"score_{problem.id}"):
