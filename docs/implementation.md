@@ -30,7 +30,8 @@
 ```
 
 #### 7.2 実装ファイルへのリンク形式
-- **ファイル名**: `[ファイル名](docs/ファイル名)`
+- **実装中**: `[ファイル名](docs/ファイル名)`
+- **完了後**: `[ファイル名](docs/implementation/ファイル名)`
 - **例**: `[20250127_implementation_basic_functionality.md](docs/20250127_implementation_basic_functionality.md)`
 
 #### 7.3 課題の更新ルール
@@ -39,18 +40,18 @@
 3. **実装ファイル移動時**: リンクを適切に更新
 
 #### 7.4 実装完了時の自動更新ルール
-**実装完了ごとに以下の更新を自動で行う**：
+**ユーザーが完了と認めたタスクは、実装ノートから消し、関連ノートはdocs/implementationに移す**
 
 1. **docs/implementation.mdの更新**
-   - 該当課題の状態を「完了」に変更
+   - 該当課題を実装ノートから削除
+   - 完了した実装タスクセクションに移動
    - 完了日を記録
    - 次回予定を更新
-   - 紐づけリンクの確認・更新（必要に応じて）
 
-2. **実装ファイルの進捗管理更新**
-   - 完了した作業にチェックマーク（[x]）を付与
-   - 進行中の作業を「なし」に更新
-   - 未着手の作業を「なし」に更新
+2. **実装ファイルの移動**
+   - 完了した実装ファイルを`docs/implementation/`に移動
+   - ファイル名は変更しない（tag_history.mdとの整合性保持）
+   - リンクを適切に更新
 
 3. **実装完了サマリーの追加**
    - 完了した実装内容の詳細記録
@@ -131,53 +132,59 @@
 - **完了日**: 2025-01-27
 - **担当**: AI Assistant
 - **内容**: 完全一致チェック、漢字・読み組み合わせチェック、問題文一致チェック、強制追加オプション
-- **実装方針**: [20250127_implementation_duplicate_check_fix.md](docs/20250127_implementation_duplicate_check_fix.md)
+- **実装方針**: [20250127_implementation_duplicate_check_fix.md](docs/implementation/20250127_implementation_duplicate_check_fix.md)
 
 ✅ **印刷用ページのUI改善**: 印刷時の表示と操作性の向上
 - **完了日**: 2025-01-27
 - **担当**: AI Assistant
 - **内容**: 印刷時のフォントサイズ20pts調整、制御ボタンの非表示、CSS埋め込み
-- **実装方針**: [20250127_implementation_print_ui_improvement.md](docs/20250127_implementation_print_ui_improvement.md)
+- **実装方針**: [20250127_implementation_print_ui_improvement.md](docs/implementation/20250127_implementation_print_ui_improvement.md)
 
 ✅ **サイドメニューの表示形式変更**: プルダウンから常時表示形式への変更
 - **完了日**: 2025-01-27
 - **担当**: AI Assistant
 - **内容**: ボタンベースのナビゲーション、常時表示のサイドバーメニュー、現在ページの視覚的表示
-- **実装方針**: [20250127_implementation_sidebar_improvement.md](docs/20250127_implementation_sidebar_improvement.md)
+- **実装方針**: [20250127_implementation_sidebar_improvement.md](docs/implementation/20250127_implementation_sidebar_improvement.md)
 
 ✅ **印刷時のフォントサイズ調整**: 印刷用ページのフォントサイズを20ptsに変更
 - **完了日**: 2025-01-27
 - **担当**: AI Assistant
 - **内容**: 印刷時のフォントサイズ20pts変更、各要素のフォントサイズ調整、視認性向上
-- **実装方針**: [20250127_implementation_font_size_adjustment.md](docs/20250127_implementation_font_size_adjustment.md)
+- **実装方針**: [20250127_implementation_font_size_adjustment.md](docs/implementation/20250127_implementation_font_size_adjustment.md)
 
 ⚠️ **リセットボタンの動作改善**: フォーム内容のリセット機能の改善
 - **完了日**: 2025-01-27
 - **担当**: AI Assistant
 - **内容**: 重複状態のリセット機能（正常動作）、フォーム内容のクリア（Streamlitの制限により部分的解決）
-- **実装方針**: [20250127_implementation_reset_button_fix.md](docs/20250127_implementation_reset_button_fix.md)
+- **実装方針**: [20250127_implementation_reset_button_fix.md](docs/implementation/20250127_implementation_reset_button_fix.md)
 - **制限事項**: Streamlitの`st.form`内の入力フィールドは、リセットボタンを押しても自動的にクリアされない
+
+✅ **課題13**: 採点機能の拡張
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 印刷した問題群の自動表示、採点機能、CSV更新機能
+- **実装方針**: [20250127_implementation_scoring_enhancement.md](docs/implementation/20250127_implementation_scoring_enhancement.md)
+
+✅ **課題14**: 履歴管理機能の拡張
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 重複判定の削除、採点結果の反映、学習進捗の記録
+- **実装方針**: [20250127_implementation_history_enhancement.md](docs/implementation/20250127_implementation_history_enhancement.md)
+
+✅ **課題9**: 採点UIの実装
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 採点画面の実装、正誤入力機能、データ保存機能
+- **実装方針**: [20250127_implementation_scoring_ui.md](docs/implementation/20250127_implementation_scoring_ui.md)
+
+✅ **課題10**: エラーハンドリングの強化
+- **完了日**: 2025-01-27
+- **担当**: AI Assistant
+- **内容**: 詳細なエラーメッセージの表示、ログ機能の実装、例外処理の改善
+- **実装方針**: [20250127_implementation_error_handling.md](docs/implementation/20250127_implementation_error_handling.md)
 
 ## 未完了の実装タスク
 
-### Phase 3: UI/UX改善（優先度：中）
-**目標**: ユーザーインターフェースと操作性の向上
-
-**課題9**: 採点UIの実装
-- **状態**: 未着手
-- **優先度**: 中
-- **影響度**: 中 - ユーザビリティの向上
-- **担当**: 未定
-- **予定完了日**: 2025-02-12
-- **実装方針**: [20250127_implementation_scoring_ui.md](docs/20250127_implementation_scoring_ui.md)
-
-**課題10**: エラーハンドリングの強化
-- **状態**: 未着手
-- **優先度**: 中
-- **影響度**: 中 - アプリケーションの安定性
-- **担当**: 未定
-- **予定完了日**: 2025-02-14
-- **実装方針**: [20250127_implementation_error_handling.md](docs/20250127_implementation_error_handling.md)
 
 ### Phase 5: バグ修正（優先度：高）
 **目標**: 既存機能の動作不良を修正し、安定性を向上させる
@@ -321,41 +328,6 @@
 - **ドキュメント**: 実装方針ファイル完備
 - **動作確認**: 全機能の動作確認完了
 
-## 次回予定
-
-### Phase 3: UI/UX改善（優先度：中）
-**目標**: ユーザーインターフェースと操作性の向上
-
-**課題9**: 採点UIの実装
-- **状態**: 未着手
-- **優先度**: 中
-- **影響度**: 中 - ユーザビリティの向上
-- **担当**: 未定
-- **予定完了日**: 2025-02-12
-- **実装方針**: [20250127_implementation_scoring_ui.md](docs/20250127_implementation_scoring_ui.md)
-- **内容**: 採点画面の実装、正誤入力機能、データ保存機能
-
-**課題10**: エラーハンドリングの強化
-- **状態**: 未着手
-- **優先度**: 中
-- **影響度**: 中 - アプリケーションの安定性
-- **担当**: 未定
-- **予定完了日**: 2025-02-14
-- **実装方針**: [20250127_implementation_error_handling.md](docs/20250127_implementation_error_handling.md)
-- **内容**: 詳細なエラーメッセージの表示、ログ機能の実装、例外処理の改善
-
-
-✅ **課題13**: 採点機能の拡張
-- **完了日**: 2025-01-27
-- **担当**: AI Assistant
-- **内容**: 印刷した問題群の自動表示、採点機能、CSV更新機能
-- **実装方針**: [20250127_implementation_scoring_enhancement.md](docs/20250127_implementation_scoring_enhancement.md)
-
-✅ **課題14**: 履歴管理機能の拡張
-- **完了日**: 2025-01-27
-- **担当**: AI Assistant
-- **内容**: 重複判定の削除、採点結果の反映、学習進捗の記録
-- **実装方針**: [20250127_implementation_history_enhancement.md](docs/20250127_implementation_history_enhancement.md)
 
 
 ### ブロッカー
@@ -406,15 +378,15 @@
 ## 実装ファイル管理
 
 ### 完了した実装ファイル
-- [20250127_implementation_duplicate_check_fix.md](docs/20250127_implementation_duplicate_check_fix.md) - 重複チェック機能の動作不良修正
-- [20250127_implementation_print_ui_improvement.md](docs/20250127_implementation_print_ui_improvement.md) - 印刷用ページのUI改善
-- [20250127_implementation_sidebar_improvement.md](docs/20250127_implementation_sidebar_improvement.md) - サイドメニューの表示形式変更
-- [20250127_implementation_font_size_adjustment.md](docs/20250127_implementation_font_size_adjustment.md) - 印刷時のフォントサイズ調整
-- [20250127_implementation_reset_button_fix.md](docs/20250127_implementation_reset_button_fix.md) - リセットボタンの動作改善（部分的解決）
-- [20250127_implementation_scoring_enhancement.md](docs/20250127_implementation_scoring_enhancement.md) - 採点機能の拡張
-- [20250127_implementation_history_enhancement.md](docs/20250127_implementation_history_enhancement.md) - 履歴管理機能の拡張
-- [20250127_implementation_scoring_ui.md](docs/20250127_implementation_scoring_ui.md) - 採点UIの実装
-- [20250127_implementation_error_handling.md](docs/20250127_implementation_error_handling.md) - エラーハンドリングの強化
+- [20250127_implementation_duplicate_check_fix.md](docs/implementation/20250127_implementation_duplicate_check_fix.md) - 重複チェック機能の動作不良修正
+- [20250127_implementation_print_ui_improvement.md](docs/implementation/20250127_implementation_print_ui_improvement.md) - 印刷用ページのUI改善
+- [20250127_implementation_sidebar_improvement.md](docs/implementation/20250127_implementation_sidebar_improvement.md) - サイドメニューの表示形式変更
+- [20250127_implementation_font_size_adjustment.md](docs/implementation/20250127_implementation_font_size_adjustment.md) - 印刷時のフォントサイズ調整
+- [20250127_implementation_reset_button_fix.md](docs/implementation/20250127_implementation_reset_button_fix.md) - リセットボタンの動作改善（部分的解決）
+- [20250127_implementation_scoring_enhancement.md](docs/implementation/20250127_implementation_scoring_enhancement.md) - 採点機能の拡張
+- [20250127_implementation_history_enhancement.md](docs/implementation/20250127_implementation_history_enhancement.md) - 履歴管理機能の拡張
+- [20250127_implementation_scoring_ui.md](docs/implementation/20250127_implementation_scoring_ui.md) - 採点UIの実装
+- [20250127_implementation_error_handling.md](docs/implementation/20250127_implementation_error_handling.md) - エラーハンドリングの強化
 
 ### 未着手の実装ファイル
 - [20250127_implementation_auto_extraction.md](docs/20250127_implementation_auto_extraction.md) - 問題用紙作成ページの自動抽出機能実装
@@ -423,5 +395,6 @@
 
 ### 実装ファイルの命名規則
 - **形式**: `{YYYYMMDD}_implementation_{タスク名}.md`
-- **完了後**: ファイル名変更禁止（tag_history.mdとの整合性保持）
+- **実装中**: `docs/`直下に配置
+- **完了後**: `docs/implementation/`に移動、ファイル名変更禁止（tag_history.mdとの整合性保持）
 - **状態管理**: ファイル内容で完了状態を明確化
