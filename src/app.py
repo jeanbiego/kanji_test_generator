@@ -533,11 +533,20 @@ def show_history_page():
         elif sort_by == "漢字（あいうえお順）":
             filtered_problems.sort(key=lambda x: x.answer_kanji)
         
+        # 重複IDをUI上で非表示（最初の1件のみ採用）
+        seen_ids = set()
+        unique_problems = []
+        for p in filtered_problems:
+            if p.id in seen_ids:
+                continue
+            seen_ids.add(p.id)
+            unique_problems.append(p)
+
         # 表示件数制限
-        display_problems = filtered_problems[:show_count]
+        display_problems = unique_problems[:show_count]
         
         # 基本情報の表示
-        st.write(f"**総問題数**: {len(saved_problems)} | **表示中**: {len(display_problems)} | **検索結果**: {len(filtered_problems)}")
+        st.write(f"**総問題数**: {len(saved_problems)} | **表示中**: {len(display_problems)} | **検索結果（重複含む）**: {len(filtered_problems)} | **一意ID数**: {len(unique_problems)}")
         
         # 問題一覧の表示
         st.subheader(f"📋 問題一覧 ({len(display_problems)}件)")
@@ -545,7 +554,7 @@ def show_history_page():
         try:
             for i, problem in enumerate(display_problems):
                 # 問題のタイトル
-                title = f"問題 {i+1}: {problem.answer_kanji} ({problem.reading})"
+                title = f"問題 {i+1}: {problem.answer_kanji} ({problem.reading}) / 不正解数: {problem.incorrect_count}"
                 
                 with st.expander(title):
                     col1, col2 = st.columns([3, 1])
@@ -555,6 +564,7 @@ def show_history_page():
                         st.write(f"**回答漢字**: {problem.answer_kanji}")
                         st.write(f"**読み**: {problem.reading}")
                         st.write(f"**作成日時**: {problem.created_at.strftime('%Y年%m月%d日 %H:%M')}")
+                        st.write(f"**不正解数**: {problem.incorrect_count}")
                         
                         # プレビュー表示
                         renderer = TextRenderer()
@@ -566,20 +576,21 @@ def show_history_page():
                         col_btn1, col_btn2 = st.columns(2)
                         
                         with col_btn1:
-                            if st.button("📄 印刷", key=f"print_{problem.id}"):
+                            if st.button("📄 印刷", key=f"print_{i}_{problem.id}"):
                                 st.session_state.selected_problem_for_print = problem
                                 st.session_state.current_page = "問題用紙作成"
                                 st.rerun()
                         
                         with col_btn2:
-                            if st.button("✏️ 採点", key=f"score_{problem.id}"):
+                            if st.button("✏️ 採点", key=f"score_{i}_{problem.id}"):
                                 st.session_state.selected_problem_for_scoring = problem
                                 st.session_state.current_page = "採点"
                                 st.rerun()
                         
                         # 削除ボタン
-                        if st.button("🗑️ 削除", key=f"delete_{problem.id}"):
-                            if st.session_state.problem_storage.delete_problem(problem.id):
+                        if st.button("🗑️ 削除", key=f"delete_{i}_{problem.id}"):
+                            # 重複が存在する場合でも1件のみ削除
+                            if hasattr(st.session_state.problem_storage, 'delete_problem_once') and st.session_state.problem_storage.delete_problem_once(problem.id):
                                 st.success(f"問題「{problem.answer_kanji}」を削除しました。")
                                 st.rerun()
                             else:

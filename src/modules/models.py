@@ -20,13 +20,17 @@ class Problem:
     
     def __init__(self, sentence: str, answer_kanji: str, reading: str, 
                  id: Optional[str] = None, created_at: Optional[datetime] = None, 
-                 incorrect_count: int = 0):
+                 incorrect_count: int | str = 0):
         self.id = id or str(uuid.uuid4())
         self.sentence = sentence
         self.answer_kanji = answer_kanji
         self.reading = normalize_reading(reading)
         self.created_at = created_at or datetime.now()
-        self.incorrect_count = max(0, incorrect_count)  # 最低値は0
+        try:
+            ic = int(incorrect_count)
+        except (TypeError, ValueError):
+            ic = 0
+        self.incorrect_count = max(0, ic)  # 最低値は0
     
     def increment_incorrect_count(self) -> None:
         """不正解数を1増やす"""
@@ -56,7 +60,7 @@ class Problem:
             answer_kanji=data['answer_kanji'],
             reading=data['reading'],
             created_at=datetime.fromisoformat(data['created_at']),
-            incorrect_count=data.get('incorrect_count', 0)  # 後方互換性のためデフォルト値0
+            incorrect_count=int(data.get('incorrect_count', 0) or 0)  # 後方互換性のためデフォルト値0
         )
 
 @dataclass
