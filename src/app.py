@@ -97,9 +97,11 @@ def show_problem_creation_page():
         
         # レビュー表示
         problem_data = st.session_state.pending_problem_data
-        st.write("**問題文**:", problem_data['sentence'])
-        st.write("**回答漢字**:", problem_data['answer_kanji'])
-        st.write("**読み**:", problem_data['reading'])
+        st.write("**プレビュー**:", TextRenderer().create_preview(Problem(
+            sentence=problem_data['sentence'],
+            answer_kanji=problem_data['answer_kanji'],
+            reading=problem_data['reading']
+        )))
         
         # バリデーション結果の表示
         validator = InputValidator()
@@ -109,9 +111,7 @@ def show_problem_creation_page():
             problem_data['reading']
         )
         
-        if validation_result.is_valid:
-            st.success("✅ 入力内容は正常です")
-        else:
+        if not validation_result.is_valid:
             st.error("❌ 入力内容に問題があります:")
             for error in validation_result.errors:
                 st.error(f"  - {error}")
@@ -344,10 +344,11 @@ def show_print_page():
     # 選択された問題の表示
     st.subheader(f"📋 印刷対象の問題 ({len(problems_to_print)}問)")
     for i, problem in enumerate(problems_to_print):
-        with st.expander(f"問題 {i+1}: {problem.answer_kanji} ({problem.reading})"):
+        with st.expander(f"問題 {i+1}: {problem.answer_kanji} ({problem.reading}) / 不正解数: {problem.incorrect_count}"):
             st.write(f"**問題文**: {problem.sentence}")
             st.write(f"**回答漢字**: {problem.answer_kanji}")
             st.write(f"**読み**: {problem.reading}")
+            st.write(f"**不正解数**: {problem.incorrect_count}")
     
     # 印刷用ページ生成
     if st.button("🖨️ 印刷用ページを表示", type="primary"):
@@ -382,15 +383,7 @@ def show_scoring_page():
     
     # 最後に作成した問題用紙の問題群を自動表示
     if 'extracted_problems' in st.session_state and st.session_state.extracted_problems:
-        st.subheader("🖨️ 今回印刷した問題群の採点")
-        st.info(f"印刷用ページで表示した {len(st.session_state.extracted_problems)} 問の問題を採点できます。")
-        
-        # 印刷した問題群の表示
-        for i, problem in enumerate(st.session_state.extracted_problems):
-            with st.expander(f"問題 {i+1}: {problem.answer_kanji} ({problem.reading})"):
-                st.write(f"**問題文**: {problem.sentence}")
-                st.write(f"**回答漢字**: {problem.answer_kanji}")
-                st.write(f"**読み**: {problem.reading}")
+        # 上部の一覧表示は非表示にし、見出し下のみで採点フォームに集約
         
         # 採点フォーム
         with st.form("printed_problems_scoring_form"):
