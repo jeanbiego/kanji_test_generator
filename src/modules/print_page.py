@@ -6,8 +6,8 @@ import os
 from datetime import datetime
 from typing import List, Dict, Any
 from jinja2 import Environment, FileSystemLoader
-from src.modules.models import Problem
-from src.modules.rendering import TextRenderer
+from .models import Problem
+from .rendering import TextRenderer
 
 class PrintPageGenerator:
     """印刷用ページ生成クラス"""

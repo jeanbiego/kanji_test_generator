@@ -214,23 +214,6 @@ def show_problem_creation_page():
                     for error in validation_result.errors:
                         st.error(f"❌ {error}")
     
-    # 保存された問題の一覧表示
-    try:
-        saved_problems = st.session_state.problem_storage.load_problems()
-        if saved_problems:
-            st.subheader(f"📚 保存された問題一覧 ({len(saved_problems)}問)")
-            
-            # 最新5問を表示
-            recent_problems = sorted(saved_problems, key=lambda x: x.created_at, reverse=True)[:5]
-            
-            for i, problem in enumerate(recent_problems):
-                with st.expander(f"問題 {i+1}: {problem.answer_kanji} ({problem.reading})"):
-                    st.write(f"**問題文**: {problem.sentence}")
-                    st.write(f"**回答漢字**: {problem.answer_kanji}")
-                    st.write(f"**読み**: {problem.reading}")
-                    st.write(f"**作成日時**: {problem.created_at.strftime('%Y年%m月%d日 %H:%M')}")
-    except Exception as e:
-        st.error(f"❌ 保存された問題の読み込みに失敗しました: {e}")
 
 def check_duplicate_problem(sentence: str, answer_kanji: str, reading: str) -> tuple[bool, str]:
     """
@@ -293,18 +276,10 @@ def show_print_page():
                     st.warning("採点データがありません。採点ページで採点を行ってください。")
                     return
                 
-                # 問題別の不正解数を集計
-                problem_incorrect_count = {}
-                for attempt in attempts:
-                    if not attempt.is_correct:
-                        problem_incorrect_count[attempt.problem_id] = problem_incorrect_count.get(attempt.problem_id, 0) + 1
-                
-                # 不正解数の多い問題を上位5問抽出
-                sorted_problems = sorted(problem_incorrect_count.items(), key=lambda x: x[1], reverse=True)
-                top_5_problem_ids = [pid for pid, _ in sorted_problems[:5]]
-                
-                # 問題IDから問題オブジェクトを取得
-                problems_to_print = [p for p in saved_problems if p.id in top_5_problem_ids]
+                # 問題の不正解数でソートして上位5問抽出
+                problems_with_incorrect_count = [(p, p.incorrect_count) for p in saved_problems]
+                sorted_problems = sorted(problems_with_incorrect_count, key=lambda x: x[1], reverse=True)
+                problems_to_print = [p for p, _ in sorted_problems[:5]]
                 
                 if problems_to_print:
                     st.session_state.extracted_problems = problems_to_print
@@ -341,27 +316,30 @@ def show_print_page():
                 st.error(f"❌ ランダム抽出に失敗しました: {e}")
                 return
     
-    # 抽出された問題の表示
-    if 'extracted_problems' in st.session_state and st.session_state.extracted_problems:
-        problems_to_print = st.session_state.extracted_problems
-    else:
-        st.info("上記のボタンから問題を抽出してください。")
-        return
-    
-    # 印刷設定
+    # 印刷設定（問題抽出前から表示）
+    st.subheader("⚙️ 印刷設定")
     col1, col2 = st.columns(2)
     with col1:
         questions_per_page = st.number_input(
             "1ページあたりの問題数",
             min_value=1,
             max_value=20,
-            value=min(10, len(problems_to_print))
+            value=5,
+            help="1ページに表示する問題数を設定します"
         )
     with col2:
         title = st.text_input(
             "テストタイトル",
-            value="漢字テスト"
+            value="漢字テスト",
+            help="印刷用ページのタイトルを設定します"
         )
+    
+    # 抽出された問題の表示
+    if 'extracted_problems' in st.session_state and st.session_state.extracted_problems:
+        problems_to_print = st.session_state.extracted_problems
+    else:
+        st.info("上記のボタンから問題を抽出してください。")
+        return
     
     # 選択された問題の表示
     st.subheader(f"📋 印刷対象の問題 ({len(problems_to_print)}問)")
@@ -452,7 +430,7 @@ def show_scoring_page():
             
             if submitted:
                 try:
-                    # 試行データを保存
+                    # 試行データを保存し、問題の不正解数を更新
                     saved_count = 0
                     for problem_id, score_data in scores.items():
                         attempt = Attempt(
@@ -461,6 +439,18 @@ def show_scoring_page():
                         )
                         if st.session_state.attempt_storage.save_attempt(attempt):
                             saved_count += 1
+                            
+                            # 問題の不正解数を更新
+                            saved_problems = st.session_state.problem_storage.load_problems()
+                            for problem in saved_problems:
+                                if problem.id == problem_id:
+                                    if score_data['is_correct']:
+                                        problem.decrement_incorrect_count()
+                                    else:
+                                        problem.increment_incorrect_count()
+                                    # 更新された問題を保存
+                                    st.session_state.problem_storage.save_problem(problem)
+                                    break
                     
                     if saved_count > 0:
                         st.success(f"✅ {saved_count}問の採点結果を保存しました！")
