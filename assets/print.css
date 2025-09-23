@@ -4,7 +4,7 @@
 @media print {
   * {
     -webkit-print-color-adjust: exact !important;
-    color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   
   body {
@@ -18,11 +18,13 @@
   }
   
   .print-content {
-    width: 210mm;
-    min-height: 297mm;
+    width: auto;       /* 固定サイズ撤廃 */
+    height: auto;      /* 自動高さ */
     margin: 0 auto;
-    padding: 20mm 15mm;
+    padding: 10mm;      /* テンプレと揃える */
     box-sizing: border-box;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
   }
   
   /* ヘッダー */
@@ -46,11 +48,11 @@
   
   /* 問題エリア */
   main {
-    margin-bottom: 20mm;
+    margin-bottom: 0;
   }
   
   .question-item {
-    margin-bottom: 15mm;
+    margin-bottom: 18mm;
     page-break-inside: avoid;
     display: flex;
     align-items: flex-start;
@@ -75,7 +77,8 @@
   
   .answer-space {
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* 回転ボックスの縦方向配置に合わせる */
+    gap: 5mm;
     margin-top: 5mm;
   }
   
@@ -87,21 +90,15 @@
   
   .answer-box {
     border: 2px solid #000;
-    width: 80mm;
-    height: 18mm;
+    width: 18mm;   /* 縦書き用の細幅 */
+    height: 80mm;  /* 縦長 */
     background-color: white;
+    display: inline-block;
   }
   
-  /* フッター */
-  footer {
-    position: fixed;
-    bottom: 10mm;
-    right: 15mm;
-    font-size: 16pt;
-  }
-  
-  .page-info {
-    text-align: right;
+  /* フッター非表示（ページ番号を出さない） */
+  footer, .page-info {
+    display: none !important;
   }
   
   /* 印刷制御 */
@@ -120,9 +117,20 @@
   
   /* 印刷時の余白設定 */
   @page {
-    size: A4;
+    size: A4 landscape;
     margin: 0;
   }
+  /* Chrome の空白ページ対策: 明示的な改ページ禁止 */
+  .print-content, main, .question-item {
+    break-after: avoid;
+    break-before: auto;
+    break-inside: avoid;
+    page-break-after: avoid;
+    page-break-before: auto;
+    page-break-inside: avoid;
+  }
+
+  /* 横書きモードのサポートは不要（縦書き専用） */
 }
 
 /* 画面表示用（印刷時は非表示） */

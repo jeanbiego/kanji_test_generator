@@ -256,11 +256,29 @@ def show_print_page():
     """問題用紙作成ページ"""
     st.header("🖨️ 問題用紙作成")
     
+    # 印刷設定（問題抽出前から表示）
+    st.subheader("⚙️ 印刷設定")
+    col_set1, col_set2 = st.columns(2)
+    with col_set1:
+        questions_per_page = st.number_input(
+            "1ページあたりの問題数",
+            min_value=1,
+            max_value=20,
+            value=5,
+            help="1ページに表示する問題数を設定します"
+        )
+    with col_set2:
+        title = st.text_input(
+            "テストタイトル",
+            value="漢字テスト",
+            help="印刷用ページのタイトルを設定します"
+        )
+
     # 自動抽出機能のボタン
     st.subheader("📝 問題の自動抽出")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         if st.button("🎯 苦手漢字抽出", type="primary", use_container_width=True):
             try:
@@ -276,10 +294,10 @@ def show_print_page():
                     st.warning("採点データがありません。採点ページで採点を行ってください。")
                     return
                 
-                # 問題の不正解数でソートして上位5問抽出
+                # 問題の不正解数でソートして上位を抽出
                 problems_with_incorrect_count = [(p, p.incorrect_count) for p in saved_problems]
                 sorted_problems = sorted(problems_with_incorrect_count, key=lambda x: x[1], reverse=True)
-                problems_to_print = [p for p, _ in sorted_problems[:5]]
+                problems_to_print = [p for p, _ in sorted_problems[:int(questions_per_page)]]
                 
                 if problems_to_print:
                     st.session_state.extracted_problems = problems_to_print
@@ -302,10 +320,11 @@ def show_print_page():
                     st.warning("保存された問題がありません。問題登録ページで問題を作成してください。")
                     return
                 
-                # ランダムに5問抽出（重複なし）
+                # ランダムに抽出（重複なし）
                 import random
-                if len(saved_problems) >= 5:
-                    problems_to_print = random.sample(saved_problems, 5)
+                qpp = int(questions_per_page)
+                if len(saved_problems) >= qpp:
+                    problems_to_print = random.sample(saved_problems, qpp)
                 else:
                     problems_to_print = saved_problems
                 
@@ -316,23 +335,7 @@ def show_print_page():
                 st.error(f"❌ ランダム抽出に失敗しました: {e}")
                 return
     
-    # 印刷設定（問題抽出前から表示）
-    st.subheader("⚙️ 印刷設定")
-    col1, col2 = st.columns(2)
-    with col1:
-        questions_per_page = st.number_input(
-            "1ページあたりの問題数",
-            min_value=1,
-            max_value=20,
-            value=5,
-            help="1ページに表示する問題数を設定します"
-        )
-    with col2:
-        title = st.text_input(
-            "テストタイトル",
-            value="漢字テスト",
-            help="印刷用ページのタイトルを設定します"
-        )
+    # 設定は上部に移動済み
     
     # 抽出された問題の表示
     if 'extracted_problems' in st.session_state and st.session_state.extracted_problems:

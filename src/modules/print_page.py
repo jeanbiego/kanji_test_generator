@@ -23,6 +23,8 @@ class PrintPageGenerator:
             loader=FileSystemLoader(self.templates_dir),
             autoescape=True
         )
+        # フィルタ追加: アラビア数字 → 漢数字
+        self.jinja_env.filters['to_kanji_numeral'] = self._to_kanji_numeral
     
     def generate_print_page(
         self, 
@@ -94,6 +96,28 @@ class PrintPageGenerator:
         # テンプレートをレンダリング
         template = self.jinja_env.get_template('print_page.html')
         return template.render(**template_data)
+
+    def _to_kanji_numeral(self, n: int) -> str:
+        """整数を漢数字（一般表記）に変換（1〜99を想定）。"""
+        units = {
+            0: '', 1: '一', 2: '二', 3: '三', 4: '四', 5: '五',
+            6: '六', 7: '七', 8: '八', 9: '九'
+        }
+        if n <= 0:
+            return str(n)
+        if n <= 10:
+            if n == 10:
+                return '十'
+            return units[n]
+        if n < 20:
+            return '十' + units[n - 10]
+        if n < 100:
+            ten = n // 10
+            rem = n % 10
+            ten_part = ('十' if ten == 1 else units[ten] + '十')
+            return ten_part + units[rem]
+        # 100以上は簡易表記（そのまま）
+        return str(n)
     
     def _format_problem_text(self, sentence: str, answer_kanji: str) -> str:
         """
