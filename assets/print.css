@@ -115,52 +115,65 @@
     page-break-before: always;
   }
   
-  /* 印刷時の余白設定 */
+  /* 印刷時の余白設定 - 空白ページ対策強化 */
   @page {
     size: A4 landscape;
+    margin: 5mm;
+    /* 空白ページを完全に防止 */
+    orphans: 0;
+    widows: 0;
+  }
+  
+  /* 空白ページ完全防止 - 根本的な対策 */
+  body {
     margin: 0;
-  }
-  /* Chrome の空白ページ対策: 明示的な改ページ禁止 */
-  .print-content, main, .question-item {
-    break-after: avoid;
-    break-before: auto;
-    break-inside: avoid;
-    page-break-after: avoid;
-    page-break-before: auto;
-    page-break-inside: avoid;
-  }
-  
-  /* 空白ページ対策: 最後の要素の改ページを禁止 */
-  .question-item:last-child {
-    page-break-after: avoid;
-    break-after: avoid;
-    margin-bottom: 0;
-  }
-  
-  /* 問題数が多い場合の改ページ制御 */
-  .question-item:nth-child(5n) {
-    page-break-after: avoid;
-    break-after: avoid;
-  }
-  
-  /* 強制的な改ページ防止 */
-  .print-content {
-    overflow: hidden;
+    padding: 0;
     height: auto;
     min-height: auto;
-    max-height: 100vh;
+    max-height: none;
+    overflow: visible;
   }
   
-  /* 空白ページ完全防止 */
-  main {
+  .print-content {
+    margin: 0;
+    padding: 5mm;
+    height: auto;
+    min-height: auto;
+    max-height: none;
+    overflow: visible;
+    /* 強制的に1ページに収める */
     page-break-after: avoid;
     break-after: avoid;
   }
   
-  /* 最後のページの余白を最小化 */
+  main {
+    margin: 0;
+    padding: 0;
+    height: auto;
+    min-height: auto;
+    max-height: none;
+    overflow: visible;
+    /* 強制的に1ページに収める */
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  
+  /* 問題アイテムの改ページ制御を最小化 */
+  .question-item {
+    margin-bottom: 10mm;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    /* 改ページを禁止 */
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  
+  /* 最後の要素の余白を最小化 */
   .question-item:last-child {
     margin-bottom: 0;
     padding-bottom: 0;
+    page-break-after: avoid;
+    break-after: avoid;
   }
 
   /* 横書きモードのサポートは不要（縦書き専用） */

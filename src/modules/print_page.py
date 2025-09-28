@@ -55,9 +55,13 @@ class PrintPageGenerator:
         problems: List[Problem], 
         questions_per_page: int
     ) -> List[List[Problem]]:
-        """問題をページごとに分割（空白ページ対策強化）"""
+        """問題をページごとに分割（空白ページ完全防止）"""
         if not problems:
             return []
+        
+        # 7問以下の場合は1ページにまとめる（空白ページ防止）
+        if len(problems) <= 7:
+            return [problems]
         
         pages = []
         for i in range(0, len(problems), questions_per_page):
