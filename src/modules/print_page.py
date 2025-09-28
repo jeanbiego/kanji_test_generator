@@ -55,26 +55,12 @@ class PrintPageGenerator:
         problems: List[Problem], 
         questions_per_page: int
     ) -> List[List[Problem]]:
-        """問題をページごとに分割（空白ページ完全防止）"""
+        """強制的に1ページのみ印刷（ページ分割完全禁止）"""
         if not problems:
             return []
         
-        # 7問以下の場合は1ページにまとめる（空白ページ防止）
-        if len(problems) <= 7:
-            return [problems]
-        
-        pages = []
-        for i in range(0, len(problems), questions_per_page):
-            page_problems = problems[i:i + questions_per_page]
-            # 空のページを避けるため、問題がある場合のみ追加
-            if page_problems:
-                pages.append(page_problems)
-        
-        # 最後のページが空でないことを確認
-        if pages and not pages[-1]:
-            pages = pages[:-1]
-        
-        return pages
+        # 常に1ページのみ（ページ分割を完全に禁止）
+        return [problems]
     
     def _generate_single_page(
         self, 

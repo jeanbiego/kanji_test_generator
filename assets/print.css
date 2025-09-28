@@ -115,16 +115,31 @@
     page-break-before: always;
   }
   
-  /* 印刷時の余白設定 - 空白ページ対策強化 */
+  /* 強制的に1ページのみ印刷 - 根本的な対策 */
   @page {
     size: A4 landscape;
     margin: 5mm;
-    /* 空白ページを完全に防止 */
+    /* 強制的に1ページのみ */
     orphans: 0;
     widows: 0;
+    /* ページ分割を完全に禁止 */
+    page-break-before: avoid;
+    page-break-after: avoid;
+    break-before: avoid;
+    break-after: avoid;
   }
   
-  /* 空白ページ完全防止 - 根本的な対策 */
+  /* 強制的に1ページのみ印刷 - 全要素に適用 */
+  * {
+    /* すべての要素でページ分割を禁止 */
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-before: avoid !important;
+    break-after: avoid !important;
+    break-inside: avoid !important;
+  }
+  
   body {
     margin: 0;
     padding: 0;
@@ -132,6 +147,11 @@
     min-height: auto;
     max-height: none;
     overflow: visible;
+    /* 強制的に1ページのみ */
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    break-before: avoid !important;
+    break-after: avoid !important;
   }
   
   .print-content {
@@ -141,9 +161,11 @@
     min-height: auto;
     max-height: none;
     overflow: visible;
-    /* 強制的に1ページに収める */
-    page-break-after: avoid;
-    break-after: avoid;
+    /* 強制的に1ページのみ */
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    break-before: avoid !important;
+    break-after: avoid !important;
   }
   
   main {
@@ -153,9 +175,11 @@
     min-height: auto;
     max-height: none;
     overflow: visible;
-    /* 強制的に1ページに収める */
-    page-break-after: avoid;
-    break-after: avoid;
+    /* 強制的に1ページのみ */
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    break-before: avoid !important;
+    break-after: avoid !important;
   }
   
   /* 問題アイテムの改ページ制御を最小化 */
