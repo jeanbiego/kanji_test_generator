@@ -90,8 +90,84 @@ def show_problem_creation_page():
         st.session_state.problem_review_mode = False
     if 'pending_problem_data' not in st.session_state:
         st.session_state.pending_problem_data = {}
+    if 'save_success_info' not in st.session_state:
+        st.session_state.save_success_info = None
     
-    # 問題レビューモードの場合
+    # 問題入力フォーム（常に表示）
+    with st.form("problem_form"):
+        st.subheader("新しい問題を作成")
+        
+        # フォームの初期値を設定
+        if st.session_state.problem_review_mode:
+            # 状態3: 問題作成後は記入済みの値を表示
+            problem_data = st.session_state.pending_problem_data
+            sentence = problem_data.get('sentence', '')
+            answer_kanji = problem_data.get('answer_kanji', '')
+            reading = problem_data.get('reading', '')
+        else:
+            # 状態1,2,4: 初期状態、記入状態、保存成功後は空のフォーム
+            sentence = ""
+            answer_kanji = ""
+            reading = ""
+        
+        sentence = st.text_area(
+            "問題文",
+            value=sentence,
+            placeholder="例：独創的な表現で知られるアーティスト",
+            help="漢字を含む文章を入力してください",
+            height=100
+        )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            answer_kanji = st.text_input(
+                "回答漢字",
+                value=answer_kanji,
+                placeholder="例：独創",
+                help="問題文に含まれる漢字を入力してください（例：独創、美しい、創造）"
+            )
+        with col2:
+            reading = st.text_input(
+                "読み",
+                value=reading,
+                placeholder="例：どくそう",
+                help="ひらがなまたはカタカナで入力してください（例：どくそう、うつくしい、そうぞう）"
+            )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            create_submitted = st.form_submit_button("問題を作成", type="primary")
+        with col2:
+            reset_submitted = st.form_submit_button("リセット", type="secondary")
+        
+        if reset_submitted:
+            st.session_state.problem_review_mode = False
+            st.session_state.pending_problem_data = {}
+            st.session_state.save_success_info = None
+            st.rerun()
+        
+        if create_submitted:
+            # 保存成功表示をクリア
+            st.session_state.save_success_info = None
+            
+            # バリデーション
+            validator = InputValidator()
+            validation_result = validator.validate_problem(sentence, answer_kanji, reading)
+            
+            if validation_result.is_valid:
+                # 状態3: 問題作成後はレビューモードに移行
+                st.session_state.problem_review_mode = True
+                st.session_state.pending_problem_data = {
+                    'sentence': sentence,
+                    'answer_kanji': answer_kanji,
+                    'reading': reading
+                }
+                st.rerun()
+            else:
+                for error in validation_result.errors:
+                    st.error(f"❌ {error}")
+    
+    # 状態3: 問題の確認プレビュー（問題作成ボタン押下後）
     if st.session_state.problem_review_mode:
         st.subheader("📋 問題の確認")
         
@@ -139,80 +215,63 @@ def show_problem_creation_page():
                         reading=problem_data['reading']
                     )
                     
+                    # 新規問題登録時は不正解数を+1（問題が難しいという意味）
+                    problem.increment_incorrect_count()
+                    
+                    app_logger.info(f"問題保存を試行: {problem.id} - {problem.sentence[:30]}... (不正解数: {problem.incorrect_count})")
+                    
                     if st.session_state.problem_storage.save_problem(problem):
-                        st.success("✅ 問題を保存しました！")
-                        # 状態をリセット
+                        # 状態4: 保存成功情報をセッション状態に保存
+                        st.session_state.save_success_info = {
+                            'id': problem.id,
+                            'sentence': problem.sentence,
+                            'answer_kanji': problem.answer_kanji,
+                            'reading': problem.reading,
+                            'incorrect_count': problem.incorrect_count
+                        }
+                        # レビューモードを終了
                         st.session_state.problem_review_mode = False
                         st.session_state.pending_problem_data = {}
+                        app_logger.info(f"問題保存成功: {problem.id} (不正解数: {problem.incorrect_count})")
                         st.rerun()
                     else:
                         st.error("❌ 問題の保存に失敗しました。")
+                        app_logger.error(f"問題保存失敗: {problem.id}")
                 except Exception as e:
                     st.error(f"❌ 問題の保存中にエラーが発生しました: {e}")
+                    app_logger.error(f"問題保存エラー: {e}")
         
         with col2:
             if st.button("✏️ 編集に戻る", type="secondary"):
                 st.session_state.problem_review_mode = False
+                st.session_state.save_success_info = None
                 st.rerun()
         
         with col3:
             if st.button("❌ キャンセル", type="secondary"):
                 st.session_state.problem_review_mode = False
                 st.session_state.pending_problem_data = {}
+                st.session_state.save_success_info = None
                 st.rerun()
     
-    else:
-        # 問題入力フォーム
-        with st.form("problem_form"):
-            st.subheader("新しい問題を作成")
-            
-            sentence = st.text_area(
-                "問題文",
-                placeholder="例：独創的な表現で知られるアーティスト",
-                help="漢字を含む文章を入力してください",
-                height=100
-            )
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                answer_kanji = st.text_input(
-                    "回答漢字",
-                    placeholder="例：独創",
-                    help="問題文に含まれる漢字を入力してください"
-                )
-            with col2:
-                reading = st.text_input(
-                    "読み",
-                    placeholder="例：どくそう",
-                    help="ひらがなまたはカタカナで入力してください"
-                )
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                create_submitted = st.form_submit_button("問題を作成", type="primary")
-            with col2:
-                reset_submitted = st.form_submit_button("リセット", type="secondary")
-            
-            if reset_submitted:
-                st.rerun()
-            
-            if create_submitted:
-                # バリデーション
-                validator = InputValidator()
-                validation_result = validator.validate_problem(sentence, answer_kanji, reading)
-                
-                if validation_result.is_valid:
-                    # レビューモードに移行
-                    st.session_state.problem_review_mode = True
-                    st.session_state.pending_problem_data = {
-                        'sentence': sentence,
-                        'answer_kanji': answer_kanji,
-                        'reading': reading
-                    }
-                    st.rerun()
-                else:
-                    for error in validation_result.errors:
-                        st.error(f"❌ {error}")
+    # 状態4: 保存成功情報の表示（問題を保存ボタン押下後）
+    if st.session_state.save_success_info:
+        st.subheader("✅ 保存完了")
+        
+        success_info = st.session_state.save_success_info
+        st.success("✅ 問題を保存しました！")
+        st.info(f"📊 不正解数: {success_info['incorrect_count']}")
+        st.success(f"🆔 問題ID: {success_info['id']}")
+        st.success(f"📝 問題文: {success_info['sentence'][:50]}{'...' if len(success_info['sentence']) > 50 else ''}")
+        st.success(f"🔤 回答漢字: {success_info['answer_kanji']}")
+        st.success(f"📖 読み: {success_info['reading']}")
+        
+        # 新しい問題を作成ボタン
+        if st.button("🆕 新しい問題を作成", type="primary"):
+            st.session_state.save_success_info = None
+            st.session_state.problem_review_mode = False
+            st.session_state.pending_problem_data = {}
+            st.rerun()
     
 
 def check_duplicate_problem(sentence: str, answer_kanji: str, reading: str) -> tuple[bool, str]:
@@ -228,18 +287,23 @@ def check_duplicate_problem(sentence: str, answer_kanji: str, reading: str) -> t
         (is_duplicate, message): 重複フラグとメッセージ
     """
     try:
+        from modules.utils import normalize_reading
+        
         saved_problems = st.session_state.problem_storage.load_problems()
         
+        # 入力された読みを正規化（カタカナに統一）
+        normalized_reading = normalize_reading(reading)
+        
         for problem in saved_problems:
-            # 完全一致チェック
+            # 完全一致チェック（正規化された読みで比較）
             if (problem.sentence == sentence and 
                 problem.answer_kanji == answer_kanji and 
-                problem.reading == reading):
+                problem.reading == normalized_reading):
                 return True, f"完全に同じ問題が既に存在します（ID: {problem.id}）"
             
-            # 回答漢字と読みの組み合わせチェック
+            # 回答漢字と読みの組み合わせチェック（正規化された読みで比較）
             if (problem.answer_kanji == answer_kanji and 
-                problem.reading == reading):
+                problem.reading == normalized_reading):
                 return True, f"同じ漢字・読みの組み合わせが既に存在します（問題文: {problem.sentence[:30]}...）"
             
             # 問題文の類似チェック（部分一致）
@@ -297,7 +361,9 @@ def show_print_page():
                 # 問題の不正解数でソートして上位を抽出
                 problems_with_incorrect_count = [(p, p.incorrect_count) for p in saved_problems]
                 sorted_problems = sorted(problems_with_incorrect_count, key=lambda x: x[1], reverse=True)
-                problems_to_print = [p for p, _ in sorted_problems[:int(questions_per_page)]]
+                # 抽出数を確実に制限
+                extract_count = min(int(questions_per_page), len(sorted_problems))
+                problems_to_print = [p for p, _ in sorted_problems[:extract_count]]
                 
                 if problems_to_print:
                     st.session_state.extracted_problems = problems_to_print
@@ -340,12 +406,12 @@ def show_print_page():
     # 抽出された問題の表示
     if 'extracted_problems' in st.session_state and st.session_state.extracted_problems:
         problems_to_print = st.session_state.extracted_problems
+        # 抽出された問題数を確実に表示
+        actual_count = len(problems_to_print)
+        st.subheader(f"📋 印刷対象の問題 ({actual_count}問)")
     else:
         st.info("上記のボタンから問題を抽出してください。")
         return
-    
-    # 選択された問題の表示
-    st.subheader(f"📋 印刷対象の問題 ({len(problems_to_print)}問)")
     for i, problem in enumerate(problems_to_print):
         with st.expander(f"問題 {i+1}: {problem.answer_kanji} ({problem.reading}) / 不正解数: {problem.incorrect_count}"):
             st.write(f"**問題文**: {problem.sentence}")

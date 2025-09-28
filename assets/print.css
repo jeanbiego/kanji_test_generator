@@ -129,6 +129,39 @@
     page-break-before: auto;
     page-break-inside: avoid;
   }
+  
+  /* 空白ページ対策: 最後の要素の改ページを禁止 */
+  .question-item:last-child {
+    page-break-after: avoid;
+    break-after: avoid;
+    margin-bottom: 0;
+  }
+  
+  /* 問題数が多い場合の改ページ制御 */
+  .question-item:nth-child(5n) {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  
+  /* 強制的な改ページ防止 */
+  .print-content {
+    overflow: hidden;
+    height: auto;
+    min-height: auto;
+    max-height: 100vh;
+  }
+  
+  /* 空白ページ完全防止 */
+  main {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  
+  /* 最後のページの余白を最小化 */
+  .question-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
 
   /* 横書きモードのサポートは不要（縦書き専用） */
 }

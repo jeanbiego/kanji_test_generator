@@ -25,7 +25,7 @@ class ProblemStorage:
                 writer.writerow(['id', 'sentence', 'answer_kanji', 'reading', 'created_at', 'incorrect_count'])
     
     def save_problem(self, problem: Problem) -> bool:
-        """問題を更新保存（未登録IDは追加しない）"""
+        """問題を保存（新規追加または既存更新）"""
         try:
             # 既存データを読み込み
             problems = self.load_problems()
@@ -34,10 +34,13 @@ class ProblemStorage:
                 if p.id == problem.id:
                     problems[idx] = problem
                     found = True
+                    print(f"既存問題を更新しました: {problem.id}")
                     break
+            
+            # 新規問題の場合は追加
             if not found:
-                # 未登録IDは追加しない
-                return False
+                problems.append(problem)
+                print(f"新規問題を追加しました: {problem.id} - {problem.sentence[:30]}...")
 
             # 全件を書き戻す（最新スキーマ）
             with open(self.file_path, 'w', newline='', encoding='utf-8') as f:
@@ -52,6 +55,7 @@ class ProblemStorage:
                         p.created_at.isoformat(),
                         p.incorrect_count,
                     ])
+            print(f"問題保存完了: 総数 {len(problems)} 件")
             return True
         except Exception as e:
             print(f"問題の保存に失敗しました: {e}")
