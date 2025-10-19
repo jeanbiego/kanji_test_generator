@@ -51,7 +51,11 @@ class PrintPageGenerator:
             page_htmls.append(page_html)
             question_counter += len(page_problems)  # 次のページの開始番号を更新
         
-        return "\n".join(page_htmls)
+        # 複数ページの場合は改ページを挿入
+        if len(pages) > 1:
+            return self._join_pages_with_breaks(page_htmls)
+        else:
+            return page_htmls[0]
     
     def _split_problems_into_pages(
         self, 
@@ -64,6 +68,20 @@ class PrintPageGenerator:
             page_problems = problems[i:i + questions_per_page]
             pages.append(page_problems)
         return pages
+    
+    def _join_pages_with_breaks(self, page_htmls: List[str]) -> str:
+        """複数ページのHTMLを改ページで結合"""
+        # 各ページのHTMLを改ページで結合
+        # 最初のページ以外に改ページを追加
+        result_pages = []
+        for i, page_html in enumerate(page_htmls):
+            if i > 0:  # 最初のページ以外
+                # 改ページを挿入
+                page_break = '<div style="page-break-before: always; break-before: page;"></div>'
+                result_pages.append(page_break)
+            result_pages.append(page_html)
+        
+        return "\n".join(result_pages)
     
     def _generate_single_page(
         self, 

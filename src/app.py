@@ -292,12 +292,12 @@ def show_print_page():
     st.subheader("⚙️ 印刷設定")
     col_set1, col_set2 = st.columns(2)
     with col_set1:
-        questions_per_page = st.number_input(
-            "1ページあたりの問題数",
+        total_questions = st.number_input(
+            "総問題数",
             min_value=1,
-            max_value=20,
-            value=5,
-            help="1ページに表示する問題数を設定します"
+            max_value=100,
+            value=10,
+            help="印刷する問題の総数を設定します"
         )
     with col_set2:
         title = st.text_input(
@@ -329,7 +329,7 @@ def show_print_page():
                 # 問題の不正解数でソートして上位を抽出
                 problems_with_incorrect_count = [(p, p.incorrect_count) for p in saved_problems]
                 sorted_problems = sorted(problems_with_incorrect_count, key=lambda x: x[1], reverse=True)
-                problems_to_print = [p for p, _ in sorted_problems[:int(questions_per_page)]]
+                problems_to_print = [p for p, _ in sorted_problems[:int(total_questions)]]
                 
                 if problems_to_print:
                     st.session_state.extracted_problems = problems_to_print
@@ -354,7 +354,7 @@ def show_print_page():
                 
                 # ランダムに抽出（重複なし）
                 import random
-                qpp = int(questions_per_page)
+                qpp = int(total_questions)
                 if len(saved_problems) >= qpp:
                     problems_to_print = random.sample(saved_problems, qpp)
                 else:
@@ -394,11 +394,21 @@ def show_print_page():
             html_content = generator.generate_print_page(
                 problems_to_print,
                 title,
-                questions_per_page
+                10  # 1ページあたりの問題数を10にハードコーディング
             )
+            
+            # ページ数を計算（1ページあたり10問で固定）
+            questions_per_page = 10
+            total_pages = (len(problems_to_print) + questions_per_page - 1) // questions_per_page
             
             # 印刷した問題群をセッション状態に保存
             st.session_state.printed_problems = problems_to_print.copy()
+            
+            # ページ情報を表示
+            if total_pages > 1:
+                st.info(f"📄 {len(problems_to_print)}問を{total_pages}ページに分割して表示します（1ページあたり10問）")
+            else:
+                st.info(f"📄 {len(problems_to_print)}問を1ページに表示します")
             
             # HTMLを表示
             st.components.v1.html(html_content, height=600, scrolling=True)
