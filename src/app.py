@@ -12,43 +12,61 @@ from modules.logger import app_logger
 from modules.error_handler import ErrorHandler, error_handler
 from modules.backup import BackupManager
 
+# Streamlit設定（アプリケーションの最初に実行）
+st.set_page_config(
+    page_title="Kanji Test Generator",
+    page_icon="📝",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 @error_handler("アプリケーション初期化中")
 def main():
     """メインアプリケーション"""
     try:
-        st.set_page_config(
-            page_title="Kanji Test Generator",
-            page_icon="📝",
-            layout="wide",
-            initial_sidebar_state="expanded"
-        )
-        
-        st.title("📝 Kanji Test Generator")
-        st.markdown("小学生向け漢字テスト自動作成アプリケーション")
-        
         app_logger.info("アプリケーション開始")
     except Exception as e:
         ErrorHandler.handle_error(e, "アプリケーション初期化中")
         return
     
-    # セッション状態の初期化
-    if 'problems' not in st.session_state:
-        st.session_state.problems = []
-    if 'problem_storage' not in st.session_state:
-        st.session_state.problem_storage = ProblemStorage()
-    if 'attempt_storage' not in st.session_state:
-        st.session_state.attempt_storage = AttemptStorage()
-    if 'printed_problems' not in st.session_state:
-        st.session_state.printed_problems = []
-    if 'scoring_results' not in st.session_state:
-        st.session_state.scoring_results = {}
+    # 初期化完了フラグのチェック
+    if 'initialized' not in st.session_state:
+        with st.spinner('アプリケーションを初期化しています...'):
+            try:
+                # セッション状態の初期化
+                st.session_state.problems = []
+                st.session_state.problem_storage = ProblemStorage()
+                st.session_state.attempt_storage = AttemptStorage()
+                st.session_state.printed_problems = []
+                st.session_state.scoring_results = {}
+                
+                # 初期化完了フラグを設定
+                st.session_state.initialized = True
+                app_logger.info("アプリケーション初期化完了")
+            except Exception as e:
+                st.error(f"初期化エラー: {e}")
+                app_logger.error(f"初期化失敗: {e}")
+                return
+        
+        # 初期化完了後にリロード
+        st.rerun()
     
-    # バックアップ機能の初期化（初回起動時のみ）
-    if 'backup_created' not in st.session_state:
+    # 初期化が完了していない場合は何も表示しない
+    if not st.session_state.get('initialized', False):
+        st.info('アプリケーションを初期化しています...')
+        return
+    
+    # アプリケーションのタイトルと説明（初期化完了後に表示）
+    st.title("📝 Kanji Test Generator")
+    st.markdown("小学生向け漢字テスト自動作成アプリケーション")
+    
+    # バックアップ機能の初期化（初期化完了後に実行）
+    if st.session_state.get('initialized', False) and 'backup_created' not in st.session_state:
         try:
-            backup_manager = BackupManager()
-            backup_manager.create_backup()
-            backup_manager.cleanup_old_backups()
+            with st.spinner('データをバックアップしています...'):
+                backup_manager = BackupManager()
+                backup_manager.create_backup()
+                backup_manager.cleanup_old_backups()
             st.session_state.backup_created = True
             app_logger.info("データファイルのバックアップを作成しました")
         except Exception as e:
@@ -64,20 +82,24 @@ def main():
     
     # ページ選択ボタン
     if st.sidebar.button("📝 問題登録", use_container_width=True):
-        st.session_state.current_page = "問題登録"
-        st.rerun()
+        if st.session_state.current_page != "問題登録":
+            st.session_state.current_page = "問題登録"
+            st.rerun()
     
     if st.sidebar.button("🖨️ 問題用紙作成", use_container_width=True):
-        st.session_state.current_page = "問題用紙作成"
-        st.rerun()
+        if st.session_state.current_page != "問題用紙作成":
+            st.session_state.current_page = "問題用紙作成"
+            st.rerun()
     
     if st.sidebar.button("✅ 採点", use_container_width=True):
-        st.session_state.current_page = "採点"
-        st.rerun()
+        if st.session_state.current_page != "採点":
+            st.session_state.current_page = "採点"
+            st.rerun()
     
     if st.sidebar.button("📊 履歴管理", use_container_width=True):
-        st.session_state.current_page = "履歴管理"
-        st.rerun()
+        if st.session_state.current_page != "履歴管理":
+            st.session_state.current_page = "履歴管理"
+            st.rerun()
     
     page = st.session_state.current_page
     
@@ -589,19 +611,19 @@ def show_history_page():
                         col_btn1, col_btn2 = st.columns(2)
                         
                         with col_btn1:
-                            if st.button("📄 印刷", key=f"print_{i}_{problem.id}"):
+                            if st.button("📄 印刷", key=f"print_{i}_{problem.id}_{hash(problem.sentence)}"):
                                 st.session_state.selected_problem_for_print = problem
                                 st.session_state.current_page = "問題用紙作成"
                                 st.rerun()
                         
                         with col_btn2:
-                            if st.button("✏️ 採点", key=f"score_{i}_{problem.id}"):
+                            if st.button("✏️ 採点", key=f"score_{i}_{problem.id}_{hash(problem.sentence)}"):
                                 st.session_state.selected_problem_for_scoring = problem
                                 st.session_state.current_page = "採点"
                                 st.rerun()
                         
                         # 削除ボタン
-                        if st.button("🗑️ 削除", key=f"delete_{i}_{problem.id}"):
+                        if st.button("🗑️ 削除", key=f"delete_{i}_{problem.id}_{hash(problem.sentence)}"):
                             # 重複が存在する場合でも1件のみ削除
                             if hasattr(st.session_state.problem_storage, 'delete_problem_once') and st.session_state.problem_storage.delete_problem_once(problem.id):
                                 st.success(f"問題「{problem.answer_kanji}」を削除しました。")
