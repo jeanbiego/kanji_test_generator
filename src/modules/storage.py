@@ -3,9 +3,8 @@ CSV入出力機能
 """
 
 import csv
-import os
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 from .models import Problem, Attempt
 
 class ProblemStorage:

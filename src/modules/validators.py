@@ -4,7 +4,7 @@
 
 from dataclasses import dataclass
 from typing import List
-from .utils import validate_reading_format, contains_kanji, extract_kanji
+from .utils import validate_reading_format, contains_kanji
 
 @dataclass
 class ValidationResult:

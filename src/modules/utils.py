@@ -4,7 +4,6 @@
 
 import re
 from datetime import datetime
-from typing import Union
 
 def get_current_datetime() -> datetime:
     """現在の日時を取得"""

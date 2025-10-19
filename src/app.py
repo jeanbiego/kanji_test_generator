@@ -4,15 +4,13 @@ Streamlitエントリーポイント
 """
 
 import streamlit as st
-import pandas as pd
-from datetime import datetime
 from modules.models import Problem, Attempt
 from modules.storage import ProblemStorage, AttemptStorage
 from modules.rendering import TextRenderer
 from modules.validators import InputValidator
-from modules.utils import get_current_datetime
 from modules.logger import app_logger
-from modules.error_handler import ErrorHandler, error_handler, safe_execute
+from modules.error_handler import ErrorHandler, error_handler
+from modules.backup import BackupManager
 
 @error_handler("アプリケーション初期化中")
 def main():
@@ -44,6 +42,18 @@ def main():
         st.session_state.printed_problems = []
     if 'scoring_results' not in st.session_state:
         st.session_state.scoring_results = {}
+    
+    # バックアップ機能の初期化（初回起動時のみ）
+    if 'backup_created' not in st.session_state:
+        try:
+            backup_manager = BackupManager()
+            backup_manager.create_backup()
+            backup_manager.cleanup_old_backups()
+            st.session_state.backup_created = True
+            app_logger.info("データファイルのバックアップを作成しました")
+        except Exception as e:
+            app_logger.error(f"バックアップ作成に失敗しました: {e}")
+            st.session_state.backup_created = True  # エラーでも次回はスキップ
     
     # サイドバーでページ選択（常時表示）
     st.sidebar.title("📝 メニュー")
@@ -400,7 +410,7 @@ def show_scoring_page():
                 # 正誤選択
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    correct = st.radio(f"正誤", ["正解", "不正解"], key=f"printed_score_{problem.id}", horizontal=True)
+                    correct = st.radio("正誤", ["正解", "不正解"], key=f"printed_score_{problem.id}", horizontal=True)
                 with col2:
                     if correct == "不正解":
                         mistake_type = st.selectbox(

@@ -50,7 +50,11 @@ logs/
 
 # Data files
 data/
+src/data/*.csv
 *.csv
+
+# Backups
+backups/
 *.json
 
 # Generated files

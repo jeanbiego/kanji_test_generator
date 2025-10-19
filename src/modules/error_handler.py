@@ -3,7 +3,7 @@
 """
 
 import streamlit as st
-from typing import Optional, Callable, Any
+from typing import Callable, Any
 from functools import wraps
 from .logger import app_logger
 
