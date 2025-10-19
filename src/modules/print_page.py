@@ -39,14 +39,17 @@ class PrintPageGenerator:
         
         # 各ページのHTMLを生成
         page_htmls = []
+        question_counter = 1  # 全体通し番号のカウンター
         for i, page_problems in enumerate(pages, 1):
             page_html = self._generate_single_page(
                 page_problems, 
                 title, 
                 i, 
-                len(pages)
+                len(pages),
+                start_number=question_counter  # 開始番号を渡す
             )
             page_htmls.append(page_html)
+            question_counter += len(page_problems)  # 次のページの開始番号を更新
         
         return "\n".join(page_htmls)
     
@@ -67,18 +70,20 @@ class PrintPageGenerator:
         problems: List[Problem], 
         title: str, 
         page_num: int, 
-        total_pages: int
+        total_pages: int,
+        start_number: int = 1
     ) -> str:
         """単一ページのHTMLを生成"""
         
         # 問題データを準備
         question_data = []
-        for problem in problems:
+        for idx, problem in enumerate(problems, start=start_number):
             # プレビュー文字列を生成（漢字→ひらがな変換）
             preview_text = self.renderer.create_preview(problem)
             # ひらがな部分を太字にする
             formatted_text = self._format_problem_text(preview_text, problem.reading)
             question_data.append({
+                'question_number': idx,  # 全体通し番号を追加
                 'formatted_text': formatted_text,
                 'answer_kanji': problem.answer_kanji,
                 'reading': problem.reading
