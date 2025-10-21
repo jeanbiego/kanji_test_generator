@@ -20,7 +20,7 @@ class Problem:
     
     def __init__(self, sentence: str, answer_kanji: str, reading: str, 
                  id: Optional[str] = None, created_at: Optional[datetime] = None, 
-                 incorrect_count: int | str = 0):
+                 incorrect_count: int | str = 1):
         self.id = id or str(uuid.uuid4())
         self.sentence = sentence
         self.answer_kanji = answer_kanji
