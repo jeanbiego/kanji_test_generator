@@ -70,18 +70,9 @@ class PrintPageGenerator:
         return pages
     
     def _join_pages_with_breaks(self, page_htmls: List[str]) -> str:
-        """複数ページのHTMLを改ページで結合"""
-        # 各ページのHTMLを改ページで結合
-        # 最初のページ以外に改ページを追加
-        result_pages = []
-        for i, page_html in enumerate(page_htmls):
-            if i > 0:  # 最初のページ以外
-                # 改ページを挿入
-                page_break = '<div style="page-break-before: always; break-before: page;"></div>'
-                result_pages.append(page_break)
-            result_pages.append(page_html)
-        
-        return "\n".join(result_pages)
+        """複数ページのHTMLを結合"""
+        # 各ページのHTMLをそのまま結合（改ページはテンプレート側で制御）
+        return "\n".join(page_htmls)
     
     def _generate_single_page(
         self, 
@@ -113,7 +104,8 @@ class PrintPageGenerator:
             'date': datetime.now().strftime('%Y年%m月%d日'),
             'questions': question_data,
             'page': page_num,
-            'total_pages': total_pages
+            'total_pages': total_pages,
+            'is_first_page': (page_num == 1)  # 追加
         }
         
         # テンプレートをレンダリング

@@ -67,3 +67,6 @@ generated_print_page.html
 # Temporary files
 *.tmp
 *.temp
+
+# OpenSpec
+openspec/changes/

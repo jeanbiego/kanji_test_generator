@@ -1,0 +1,185 @@
+---
+description: OpenSpec使用ガイドライン
+globs:
+  - "**/*.md"
+  - "openspec/**/*"
+alwaysApply: true
+---
+
+# OpenSpec使用ガイドライン
+
+## 基本方針
+
+このプロジェクトでは、新規機能開発においてOpenSpecを使用して仕様駆動開発を実践します。
+
+## OpenSpecワークフロー
+
+### 1. 新規機能開発時
+
+#### 提案作成
+- 新規機能の実装依頼時は、必ずOpenSpec形式で提案を作成
+- コマンド: `/openspec:proposal <機能名>` または自然言語で依頼
+- 例: "OpenSpec change proposal for adding user profile search filters"
+
+#### 仕様レビュー
+- 提案作成後、必ず仕様をレビュー
+- コマンド: `openspec show <変更名>` で提案内容を確認
+- コマンド: `openspec validate <変更名>` で仕様の妥当性を検証
+
+#### 実装
+- 仕様が確定したら実装を開始
+- コマンド: `/openspec:apply <変更名>` または自然言語で依頼
+- タスクリストに従って段階的に実装
+
+#### アーカイブ
+- 実装完了後、変更をアーカイブ
+- コマンド: `/openspec:archive <変更名>` でアーカイブ
+- 仕様が`openspec/specs/`に統合される
+
+### 2. 既存機能の修正時
+
+#### 軽微な修正
+- バグ修正や小さな改善は従来のワークフローを維持
+- `docs/implementation.md`に記録
+
+#### 大幅な変更
+- 既存機能の大幅な変更はOpenSpec形式で提案
+- 影響範囲を明確にし、仕様の変更点を文書化
+
+## 既存ドキュメントとの統合
+
+### OpenSpecで管理する内容
+- 新規機能の仕様定義
+- 機能追加・変更の提案
+- 実装タスクの管理
+- 仕様のバージョン管理
+
+### 既存ドキュメントで管理する内容
+- プロジェクト全体の実装状況（`docs/implementation.md`）
+- 過去の実装履歴（`docs/implementation/`）
+- 基本要件・設計ドキュメント（`docs/Kanji Test Generator要件定義・設計ドラフト.md`）
+- ディレクトリ構造（`docs/directorystructure.md`）
+- 命名規則（`docs/naming_conventions.md`）
+
+## ファイル構造
+
+```
+openspec/
+├── specs/          # 現在の仕様（アーカイブ後に蓄積）
+├── changes/        # 進行中の変更提案（Git管理外）
+└── archive/        # 完了した変更の履歴
+```
+
+## 重要な注意事項
+
+### 1. 既存ドキュメントの保護
+- `docs/`配下のファイルは削除・移動しない
+- 過去の実装履歴は参照可能な状態を維持
+- 既存のドキュメント構造を尊重
+
+### 2. 段階的な導入
+- まずは小さな機能追加でOpenSpecを試用
+- 慣れてから本格的に活用
+- 既存機能の修正は従来の方法を維持
+
+### 3. 品質管理
+- 提案作成時は要件を明確に定義
+- 仕様レビューを必ず実施
+- 実装完了後は適切にアーカイブ
+
+## コマンドリファレンス
+
+### 基本コマンド
+- `openspec list`: アクティブな変更一覧
+- `openspec view`: インタラクティブダッシュボード
+- `openspec show <変更名>`: 変更の詳細表示
+- `openspec validate <変更名>`: 仕様の検証
+- `openspec archive <変更名>`: 変更のアーカイブ
+
+### 更新コマンド
+- `openspec update`: 最新のエージェント指示を更新
+
+## 実装例
+
+### 新規機能追加の流れ
+1. **提案**: "OpenSpec change proposal for adding dark mode toggle"
+2. **レビュー**: `openspec show add-dark-mode-toggle`
+3. **検証**: `openspec validate add-dark-mode-toggle`
+4. **実装**: "Apply the add-dark-mode-toggle change"
+5. **アーカイブ**: "Archive the add-dark-mode-toggle change"
+
+### 既存機能修正の流れ
+1. **軽微な修正**: 従来のワークフローで実装
+2. **大幅な変更**: OpenSpec形式で提案・実装
+
+## 日本語仕様の書き方
+
+### 基本原則
+OpenSpecは日本語での仕様記述をサポートしていますが、構造キーワードは英語のまま維持する必要があります。
+
+### 必須の英語キーワード（変更禁止）
+- **デルタヘッダー**: `## ADDED Requirements`, `## MODIFIED Requirements`, `## REMOVED Requirements`
+- **要件ヘッダー**: `### Requirement:`
+- **シナリオヘッダー**: `#### Scenario:`
+- **要件本文**: `SHALL`または`MUST`を含む必要がある
+- **シナリオ条件**: `WHEN`, `THEN`, `AND`
+
+### 日本語化可能な要素
+- **Purpose** → **目的**
+- **要件名**（Requirement名の後）
+- **要件の説明文**
+- **シナリオ名**（Scenario名の後）
+- **シナリオの条件と結果**
+- **Design Considerations** → **設計上の考慮事項**
+
+### 日本語仕様の例
+
+```markdown
+# 問題管理機能仕様
+
+## 目的
+漢字テストの問題を効率的に管理するための機能を定義します。
+
+## ADDED Requirements
+
+### Requirement: 問題の作成
+システムは新しい問題をSHALL作成できる。
+
+#### シナリオ: 基本問題の作成
+- WHEN ユーザーが新しい問題を作成する
+- THEN 問題がデータベースに保存される
+- AND 問題IDが自動生成される
+
+### Requirement: 問題の編集
+システムは既存の問題をSHALL編集できる。
+
+#### シナリオ: 問題内容の更新
+- WHEN ユーザーが問題の内容を変更する
+- THEN 変更がデータベースに反映される
+- AND 履歴が記録される
+```
+
+### 翻訳時の注意点
+- **技術用語**: 適切な日本語訳を使用（例: validation → 検証、storage → ストレージ）
+- **自然な日本語**: 文脈に応じて自然な日本語に翻訳
+- **SHALL/MUSTの配置**: 文中に残す（例: システムはデータをSHALL保存する）
+- **一貫性**: 同じ用語は統一した日本語訳を使用
+
+### ベストプラクティス
+1. **段階的な翻訳**: 一度にすべてを翻訳せず、機能ごとに翻訳
+2. **検証の実施**: 翻訳後は必ず`openspec validate`で検証
+3. **用語集の作成**: プロジェクト固有の用語は用語集を作成
+4. **レビューの実施**: 翻訳内容をチームでレビュー
+
+## トラブルシューティング
+
+### よくある問題
+- 提案が作成されない: 自然言語での依頼を試す
+- 仕様が不明確: 要件をより具体的に記述
+- 実装が進まない: タスクを細分化
+- **日本語仕様のvalidationエラー**: 必須の英語キーワードが不足していないか確認
+
+### サポート
+- OpenSpec公式ドキュメント: https://openspec.dev/
+- プロジェクト内の`AGENTS.md`を参照
+- 既存の実装例を参考にする

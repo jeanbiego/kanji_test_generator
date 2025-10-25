@@ -3,9 +3,12 @@ CSV入出力機能
 """
 
 import csv
+import tempfile
+import shutil
 from pathlib import Path
 from typing import List
 from .models import Problem, Attempt
+from .logger import app_logger
 
 class ProblemStorage:
     """問題データのCSV入出力"""
@@ -23,37 +26,97 @@ class ProblemStorage:
                 writer = csv.writer(f)
                 writer.writerow(['id', 'sentence', 'answer_kanji', 'reading', 'created_at', 'incorrect_count'])
     
-    def save_problem(self, problem: Problem) -> bool:
-        """問題を更新保存（未登録IDは追加しない）"""
+    def _atomic_write_csv(self, file_path: Path, header: List[str], rows: List[List]) -> bool:
+        """一時ファイル経由でアトミックにCSVを書き込む"""
+        tmp_path = None
         try:
-            # 既存データを読み込み
-            problems = self.load_problems()
-            found = False
-            for idx, p in enumerate(problems):
-                if p.id == problem.id:
-                    problems[idx] = problem
-                    found = True
-                    break
-            if not found:
-                # 未登録IDは追加しない
-                return False
-
-            # 全件を書き戻す（最新スキーマ）
-            with open(self.file_path, 'w', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                writer.writerow(['id', 'sentence', 'answer_kanji', 'reading', 'created_at', 'incorrect_count'])
-                for p in problems:
-                    writer.writerow([
-                        p.id,
-                        p.sentence,
-                        p.answer_kanji,
-                        p.reading,
-                        p.created_at.isoformat(),
-                        p.incorrect_count,
-                    ])
+            # 一時ファイルに書き込み
+            with tempfile.NamedTemporaryFile(
+                mode='w', 
+                newline='', 
+                encoding='utf-8', 
+                delete=False,
+                dir=file_path.parent,
+                suffix='.tmp'
+            ) as tmp_file:
+                writer = csv.writer(tmp_file)
+                writer.writerow(header)
+                writer.writerows(rows)
+                tmp_path = Path(tmp_file.name)
+            
+            # 一時ファイルを本ファイルに置換（アトミック操作）
+            shutil.move(str(tmp_path), str(file_path))
             return True
+            
+        except Exception as e:
+            print(f"アトミック書き込みに失敗しました: {e}")
+            # 一時ファイルのクリーンアップ
+            if tmp_path and tmp_path.exists():
+                tmp_path.unlink()
+            return False
+    
+    def save_problem(self, problem: Problem) -> bool:
+        """新規問題を追加（全体再書き込み方式）"""
+        try:
+            # 既存問題を読み込み
+            problems = self.load_problems()
+            
+            # ID重複チェック
+            if any(p.id == problem.id for p in problems):
+                app_logger.warning(f"ID重複検出: {problem.id}")
+                print(f"ID重複エラー: {problem.id} は既に存在します")
+                return False
+            
+            # 新規問題を追加
+            problems.append(problem)
+            
+            # 全体を再書き込み
+            header = ['id', 'sentence', 'answer_kanji', 'reading', 'created_at', 'incorrect_count']
+            rows = [
+                [p.id, p.sentence, p.answer_kanji, p.reading, p.created_at.isoformat(), p.incorrect_count]
+                for p in problems
+            ]
+            
+            success = self._atomic_write_csv(self.file_path, header, rows)
+            if success:
+                app_logger.info(f"問題を保存: ID={problem.id}, 漢字={problem.answer_kanji}")
+            return success
+            
         except Exception as e:
             print(f"問題の保存に失敗しました: {e}")
+            return False
+
+    def update_problem(self, problem: Problem) -> bool:
+        """既存問題を更新（全体再書き込み方式）"""
+        try:
+            problems = self.load_problems()
+            
+            # 該当問題を検索して更新
+            updated = False
+            for i, p in enumerate(problems):
+                if p.id == problem.id:
+                    problems[i] = problem
+                    updated = True
+                    break
+            
+            if not updated:
+                print(f"更新エラー: ID {problem.id} が見つかりません")
+                return False
+            
+            # 全体を再書き込み
+            header = ['id', 'sentence', 'answer_kanji', 'reading', 'created_at', 'incorrect_count']
+            rows = [
+                [p.id, p.sentence, p.answer_kanji, p.reading, p.created_at.isoformat(), p.incorrect_count]
+                for p in problems
+            ]
+            
+            success = self._atomic_write_csv(self.file_path, header, rows)
+            if success:
+                app_logger.info(f"問題を更新: ID={problem.id}")
+            return success
+            
+        except Exception as e:
+            print(f"問題の更新に失敗しました: {e}")
             return False
 
     def delete_problem_once(self, problem_id: str) -> bool:
@@ -89,19 +152,45 @@ class ProblemStorage:
             return False
     
     def load_problems(self) -> List[Problem]:
-        """問題一覧を読み込み（古いスキーマにも後方互換）"""
+        """問題一覧を読み込み（重複自動解消付き）"""
         problems: List[Problem] = []
         try:
             with open(self.file_path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
-                for row in reader:
-                    # 後方互換: incorrect_count がないCSVにも対応
-                    if 'incorrect_count' not in row or row['incorrect_count'] == '' or row['incorrect_count'] is None:
-                        row = {**row, 'incorrect_count': '0'}
-                    problem = Problem.from_dict(row)
-                    problems.append(problem)
+                rows = list(reader)
+            
+            # ID重複を解消: 同一IDの場合は created_at が最新のものを採用
+            id_to_rows = {}
+            for row in rows:
+                row_id = row.get('id', '')
+                if not row_id:
+                    continue
+                
+                # 後方互換: incorrect_count がない場合は 0 を設定
+                if 'incorrect_count' not in row or row['incorrect_count'] == '' or row['incorrect_count'] is None:
+                    row['incorrect_count'] = '0'
+                
+                # 既存IDがある場合は created_at を比較
+                if row_id in id_to_rows:
+                    from datetime import datetime
+                    existing_created_at = datetime.fromisoformat(id_to_rows[row_id]['created_at'])
+                    new_created_at = datetime.fromisoformat(row['created_at'])
+                    if new_created_at > existing_created_at:
+                        id_to_rows[row_id] = row
+                else:
+                    id_to_rows[row_id] = row
+            
+            # Problem オブジェクトに変換
+            for row in id_to_rows.values():
+                problem = Problem.from_dict(row)
+                problems.append(problem)
+            
+            # created_at でソート（古い順）
+            problems.sort(key=lambda p: p.created_at)
+            
         except Exception as e:
             print(f"問題の読み込みに失敗しました: {e}")
+        
         return problems
     
     def delete_problem(self, problem_id: str) -> bool:
@@ -144,32 +233,58 @@ class AttemptStorage:
                 writer.writerow(['id', 'problem_id', 'attempted_at', 'is_correct'])
     
     def save_attempt(self, attempt: Attempt) -> bool:
-        """試行を保存"""
+        """試行を保存（全体再書き込み方式）"""
         try:
-            with open(self.file_path, 'a', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                writer.writerow([
-                    attempt.id,
-                    attempt.problem_id,
-                    attempt.attempted_at.isoformat(),
-                    attempt.is_correct
-                ])
-            return True
+            attempts = self.load_attempts()
+            
+            # ID重複チェック
+            if any(a.id == attempt.id for a in attempts):
+                app_logger.warning(f"試行ID重複検出: {attempt.id}")
+                print(f"ID重複エラー: {attempt.id} は既に存在します")
+                return False
+            
+            attempts.append(attempt)
+            
+            # 全体を再書き込み
+            header = ['id', 'problem_id', 'attempted_at', 'is_correct']
+            rows = [
+                [a.id, a.problem_id, a.attempted_at.isoformat(), a.is_correct]
+                for a in attempts
+            ]
+            
+            success = self._atomic_write_csv(self.file_path, header, rows)
+            if success:
+                app_logger.info(f"試行を保存: ID={attempt.id}, 問題ID={attempt.problem_id}, 正解={attempt.is_correct}")
+            return success
+            
         except Exception as e:
             print(f"試行の保存に失敗しました: {e}")
             return False
     
     def load_attempts(self) -> List[Attempt]:
-        """試行一覧を読み込み"""
+        """試行一覧を読み込み（ID重複自動解消付き）"""
         attempts = []
         try:
             with open(self.file_path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
-                for row in reader:
-                    attempt = Attempt.from_dict(row)
-                    attempts.append(attempt)
+                rows = list(reader)
+            
+            # ID重複を解消: 同一IDの場合は最終行を採用
+            id_to_row = {}
+            for row in rows:
+                row_id = row.get('id', '')
+                if not row_id:
+                    continue
+                id_to_row[row_id] = row
+            
+            # Attempt オブジェクトに変換
+            for row in id_to_row.values():
+                attempt = Attempt.from_dict(row)
+                attempts.append(attempt)
+            
         except Exception as e:
             print(f"試行の読み込みに失敗しました: {e}")
+        
         return attempts
     
     def get_attempts_by_problem(self, problem_id: str) -> List[Attempt]:

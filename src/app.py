@@ -11,6 +11,7 @@ from modules.validators import InputValidator
 from modules.logger import app_logger
 from modules.error_handler import ErrorHandler, error_handler
 from modules.backup import BackupManager
+from modules.health_check import run_health_check
 
 # Streamlit設定（アプリケーションの最初に実行）
 st.set_page_config(
@@ -40,8 +41,20 @@ def main():
                 st.session_state.printed_problems = []
                 st.session_state.scoring_results = {}
                 
+                # ヘルスチェックの実行
+                health_result = run_health_check(
+                    st.session_state.problem_storage,
+                    st.session_state.attempt_storage
+                )
+                
+                # 問題がある場合はダイアログ表示
+                if health_result.has_issues:
+                    st.warning(health_result.get_summary())
+                    st.info("💡 データクリーニングスクリプトの実行を推奨します: `python scripts/clean_data.py`")
+                
                 # 初期化完了フラグを設定
                 st.session_state.initialized = True
+                st.session_state.health_check_result = health_result
                 app_logger.info("アプリケーション初期化完了")
             except Exception as e:
                 st.error(f"初期化エラー: {e}")
@@ -548,6 +561,21 @@ def show_scoring_page():
 def show_history_page():
     """履歴管理ページ"""
     st.header("📚 履歴管理")
+    
+    # 孤立試行データの表示
+    if hasattr(st.session_state, 'health_check_result'):
+        health_result = st.session_state.health_check_result
+        if health_result.orphaned_attempts:
+            with st.expander(f"⚠️ 孤立試行データ ({len(health_result.orphaned_attempts)}件)"):
+                st.warning("以下の試行データは対応する問題が存在しません")
+                for attempt_id, problem_id in health_result.orphaned_attempts:
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        st.text(f"試行ID: {attempt_id}, 問題ID: {problem_id}")
+                    with col2:
+                        if st.button("削除", key=f"delete_orphan_{attempt_id}"):
+                            # 孤立データの削除処理（今後実装）
+                            st.info("孤立データの削除機能は今後実装予定です")
     
     # 保存された問題を読み込み
     try:

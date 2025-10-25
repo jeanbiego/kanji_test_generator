@@ -66,8 +66,51 @@ kanji_quiz/
 ├── assets/                # 静的ファイル
 ├── templates/             # HTMLテンプレート
 ├── docs/                  # ドキュメント
-└── logs/                  # ログファイル
+├── openspec/              # OpenSpec仕様管理
+│   ├── specs/             # 現在の仕様
+│   ├── changes/           # 進行中の変更提案
+│   └── archive/           # 完了した変更の履歴
+├── logs/                  # ログファイル
+└── AGENTS.md              # AI assistant向け指示
 ```
+
+## OpenSpec仕様駆動開発
+
+このプロジェクトでは、新規機能開発において[OpenSpec](https://openspec.dev/)を使用した仕様駆動開発を実践しています。
+
+### 新規機能開発フロー
+
+1. **提案作成**: `/openspec:proposal <機能名>` または自然言語で依頼
+2. **仕様レビュー**: `openspec show <変更名>` で提案内容を確認
+3. **仕様検証**: `openspec validate <変更名>` で仕様の妥当性を検証
+4. **実装**: `/openspec:apply <変更名>` または自然言語で依頼
+5. **アーカイブ**: `/openspec:archive <変更名>` でアーカイブ
+
+### 基本コマンド
+
+```bash
+# アクティブな変更一覧
+openspec list
+
+# インタラクティブダッシュボード
+openspec view
+
+# 変更の詳細表示
+openspec show <変更名>
+
+# 仕様の検証
+openspec validate <変更名>
+
+# 変更のアーカイブ
+openspec archive <変更名>
+```
+
+### 既存ドキュメントとの使い分け
+
+- **OpenSpec**: 新規機能の仕様管理・タスク管理
+- **docs/implementation.md**: プロジェクト全体の実装状況サマリー
+- **docs/implementation/**: 過去の実装記録（参照用）
+- **docs/Kanji Test Generator要件定義・設計ドラフト.md**: 基本要件（参照用）
 
 ## ライセンス
 MIT License
