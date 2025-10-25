@@ -156,42 +156,59 @@ def show_problem_creation_page():
         )
         
         if is_duplicate:
-            st.warning(f"⚠️ 重複の可能性: {duplicate_message}")
+            st.error(f"❌ {duplicate_message}")
+            st.info("💡 重複する問題は保存できません。編集に戻って内容を変更してください。")
         
-        # ボタン
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            if st.button("💾 問題を保存", type="primary"):
-                try:
-                    # 問題を作成して保存
-                    problem = Problem(
-                        sentence=problem_data['sentence'],
-                        answer_kanji=problem_data['answer_kanji'],
-                        reading=problem_data['reading']
-                    )
-                    
-                    if st.session_state.problem_storage.save_problem(problem):
-                        st.success("✅ 問題を保存しました！")
-                        # 状態をリセット
-                        st.session_state.problem_review_mode = False
-                        st.session_state.pending_problem_data = {}
-                        st.rerun()
-                    else:
-                        st.error("❌ 問題の保存に失敗しました。")
-                except Exception as e:
-                    st.error(f"❌ 問題の保存中にエラーが発生しました: {e}")
-        
-        with col2:
-            if st.button("✏️ 編集に戻る", type="secondary"):
-                st.session_state.problem_review_mode = False
-                st.rerun()
-        
-        with col3:
-            if st.button("❌ キャンセル", type="secondary"):
-                st.session_state.problem_review_mode = False
-                st.session_state.pending_problem_data = {}
-                st.rerun()
+        # ボタン（重複時は保存ボタンを表示しない）
+        if is_duplicate:
+            # 重複時は編集とキャンセルボタンのみ表示
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                if st.button("✏️ 編集に戻る", type="primary"):
+                    st.session_state.problem_review_mode = False
+                    st.rerun()
+            
+            with col2:
+                if st.button("❌ キャンセル", type="secondary"):
+                    st.session_state.problem_review_mode = False
+                    st.session_state.pending_problem_data = {}
+                    st.rerun()
+        else:
+            # 重複していない場合は3つのボタンを表示
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                if st.button("💾 問題を保存", type="primary"):
+                    try:
+                        # 問題を作成して保存
+                        problem = Problem(
+                            sentence=problem_data['sentence'],
+                            answer_kanji=problem_data['answer_kanji'],
+                            reading=problem_data['reading']
+                        )
+                        
+                        if st.session_state.problem_storage.save_problem(problem):
+                            st.success("✅ 問題を保存しました！")
+                            # 状態をリセット
+                            st.session_state.problem_review_mode = False
+                            st.session_state.pending_problem_data = {}
+                            st.rerun()
+                        else:
+                            st.error("❌ 問題の保存に失敗しました。")
+                    except Exception as e:
+                        st.error(f"❌ 問題の保存中にエラーが発生しました: {e}")
+            
+            with col2:
+                if st.button("✏️ 編集に戻る", type="secondary"):
+                    st.session_state.problem_review_mode = False
+                    st.rerun()
+            
+            with col3:
+                if st.button("❌ キャンセル", type="secondary"):
+                    st.session_state.problem_review_mode = False
+                    st.session_state.pending_problem_data = {}
+                    st.rerun()
     
     else:
         # 問題入力フォーム
@@ -250,6 +267,7 @@ def show_problem_creation_page():
 def check_duplicate_problem(sentence: str, answer_kanji: str, reading: str) -> tuple[bool, str]:
     """
     重複問題をチェックする
+    仕様: 回答漢字と読みの両方が一致する場合に重複と判定
     
     Args:
         sentence: 問題文
@@ -260,23 +278,18 @@ def check_duplicate_problem(sentence: str, answer_kanji: str, reading: str) -> t
         (is_duplicate, message): 重複フラグとメッセージ
     """
     try:
+        from modules.utils import normalize_reading
+        
+        # 入力された読みを正規化して比較
+        normalized_reading = normalize_reading(reading)
+        
         saved_problems = st.session_state.problem_storage.load_problems()
         
         for problem in saved_problems:
-            # 完全一致チェック
-            if (problem.sentence == sentence and 
-                problem.answer_kanji == answer_kanji and 
-                problem.reading == reading):
-                return True, f"完全に同じ問題が既に存在します（ID: {problem.id}）"
-            
-            # 回答漢字と読みの組み合わせチェック
+            # 回答漢字と読みの組み合わせチェック（仕様通り）
             if (problem.answer_kanji == answer_kanji and 
-                problem.reading == reading):
+                problem.reading == normalized_reading):
                 return True, f"同じ漢字・読みの組み合わせが既に存在します（問題文: {problem.sentence[:30]}...）"
-            
-            # 問題文の類似チェック（部分一致）
-            if problem.sentence == sentence:
-                return True, f"同じ問題文が既に存在します（回答: {problem.answer_kanji} - {problem.reading}）"
         
         return False, ""
         
