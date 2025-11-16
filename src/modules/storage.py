@@ -331,3 +331,28 @@ class AttemptStorage:
         except Exception as e:
             print(f"一括保存中にエラーが発生しました: {e}")
         return saved_count
+    
+    def delete_attempt(self, attempt_id: str) -> bool:
+        """試行を削除（全体再書き込み方式）"""
+        try:
+            attempts = self.load_attempts()
+            attempts = [a for a in attempts if a.id != attempt_id]
+            
+            # 全体を再書き込み
+            header = ['id', 'problem_id', 'attempted_at', 'is_correct']
+            rows = [
+                [a.id, a.problem_id, a.attempted_at.isoformat(), a.is_correct]
+                for a in attempts
+            ]
+            
+            success = self._atomic_write_csv(self.file_path, header, rows)
+            if success:
+                app_logger.info(f"試行を削除: ID={attempt_id}")
+            else:
+                app_logger.error(f"試行の削除に失敗: ID={attempt_id}")
+            return success
+            
+        except Exception as e:
+            app_logger.exception(f"試行の削除に失敗しました: ID={attempt_id}, エラー={e}")
+            print(f"試行の削除に失敗しました: {e}")
+            return False

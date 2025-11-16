@@ -558,8 +558,25 @@ def show_history_page():
                         st.text(f"試行ID: {attempt_id}, 問題ID: {problem_id}")
                     with col2:
                         if st.button("削除", key=f"delete_orphan_{attempt_id}"):
-                            # 孤立データの削除処理（今後実装）
-                            st.info("孤立データの削除機能は今後実装予定です")
+                            try:
+                                # 孤立データの削除処理
+                                if st.session_state.attempt_storage.delete_attempt(attempt_id):
+                                    st.success(f"試行ID {attempt_id} を削除しました。")
+                                    
+                                    # ヘルスチェックを再実行してセッション状態を更新
+                                    health_result = run_health_check(
+                                        st.session_state.problem_storage,
+                                        st.session_state.attempt_storage
+                                    )
+                                    st.session_state.health_check_result = health_result
+                                    
+                                    # 画面を再描画
+                                    st.rerun()
+                                else:
+                                    st.error(f"試行ID {attempt_id} の削除に失敗しました。")
+                            except Exception as e:
+                                app_logger.exception(f"孤立データの削除中にエラーが発生しました: {e}")
+                                st.error(f"削除中にエラーが発生しました: {e}")
     
     # 保存された問題を読み込み
     try:
