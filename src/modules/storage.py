@@ -232,6 +232,35 @@ class AttemptStorage:
                 writer = csv.writer(f)
                 writer.writerow(['id', 'problem_id', 'attempted_at', 'is_correct'])
     
+    def _atomic_write_csv(self, file_path: Path, header: List[str], rows: List[List]) -> bool:
+        """一時ファイル経由でアトミックにCSVを書き込む"""
+        tmp_path = None
+        try:
+            # 一時ファイルに書き込み
+            with tempfile.NamedTemporaryFile(
+                mode='w', 
+                newline='', 
+                encoding='utf-8', 
+                delete=False,
+                dir=file_path.parent,
+                suffix='.tmp'
+            ) as tmp_file:
+                writer = csv.writer(tmp_file)
+                writer.writerow(header)
+                writer.writerows(rows)
+                tmp_path = Path(tmp_file.name)
+            
+            # 一時ファイルを本ファイルに置換（アトミック操作）
+            shutil.move(str(tmp_path), str(file_path))
+            return True
+            
+        except Exception as e:
+            print(f"アトミック書き込みに失敗しました: {e}")
+            # 一時ファイルのクリーンアップ
+            if tmp_path and tmp_path.exists():
+                tmp_path.unlink()
+            return False
+    
     def save_attempt(self, attempt: Attempt) -> bool:
         """試行を保存（全体再書き込み方式）"""
         try:
