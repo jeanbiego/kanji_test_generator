@@ -4,6 +4,7 @@ Streamlitエントリーポイント
 """
 
 import streamlit as st
+import random
 from modules.models import Problem, Attempt
 from modules.storage import ProblemStorage, AttemptStorage
 from modules.rendering import TextRenderer
@@ -320,20 +321,16 @@ def show_print_page():
     st.subheader("📝 問題の自動抽出")
 
     col1, col2 = st.columns(2)
+    col3, col4 = st.columns(2)
 
     with col1:
-        if st.button("🎯 苦手漢字抽出", type="primary", use_container_width=True):
+        if st.button("🎯 苦手上位", type="primary", use_container_width=True):
             try:
-                # 苦手漢字抽出ロジック
+                # 苦手上位抽出ロジック
                 saved_problems = st.session_state.problem_storage.load_problems()
-                attempts = st.session_state.attempt_storage.load_attempts()
                 
                 if not saved_problems:
                     st.warning("保存された問題がありません。問題登録ページで問題を作成してください。")
-                    return
-                
-                if not attempts:
-                    st.warning("採点データがありません。採点ページで採点を行ってください。")
                     return
                 
                 # 問題の不正解数でソートして上位を抽出
@@ -343,17 +340,73 @@ def show_print_page():
                 
                 if problems_to_print:
                     st.session_state.extracted_problems = problems_to_print
-                    st.success(f"✅ 苦手漢字を{len(problems_to_print)}問抽出しました")
+                    st.success(f"✅ 苦手上位を{len(problems_to_print)}問抽出しました")
                 else:
-                    st.warning("苦手漢字が見つかりませんでした。")
+                    st.warning("苦手な問題が見つかりませんでした。")
                     return
                     
             except Exception as e:
-                st.error(f"❌ 苦手漢字抽出に失敗しました: {e}")
+                st.error(f"❌ 苦手上位抽出に失敗しました: {e}")
                 return
     
     with col2:
-        if st.button("🎲 ランダム抽出", type="secondary", use_container_width=True):
+        if st.button("🎲 苦手ランダム", type="secondary", use_container_width=True):
+            try:
+                # 苦手ランダム抽出ロジック
+                saved_problems = st.session_state.problem_storage.load_problems()
+                
+                if not saved_problems:
+                    st.warning("保存された問題がありません。問題登録ページで問題を作成してください。")
+                    return
+                
+                # incorrect_count >= 1 の問題をフィルタリング
+                weak_problems = [p for p in saved_problems if p.incorrect_count >= 1]
+                
+                if not weak_problems:
+                    st.warning("苦手な問題が見つかりませんでした。")
+                    return
+                
+                # ランダムに抽出（重複なし）
+                qpp = int(total_questions)
+                if len(weak_problems) >= qpp:
+                    problems_to_print = random.sample(weak_problems, qpp)
+                else:
+                    problems_to_print = weak_problems
+                
+                st.session_state.extracted_problems = problems_to_print
+                st.success(f"✅ 苦手ランダムで{len(problems_to_print)}問抽出しました")
+                
+            except Exception as e:
+                st.error(f"❌ 苦手ランダム抽出に失敗しました: {e}")
+                return
+    
+    with col3:
+        if st.button("📅 最新", type="secondary", use_container_width=True):
+            try:
+                # 最新抽出ロジック
+                saved_problems = st.session_state.problem_storage.load_problems()
+                
+                if not saved_problems:
+                    st.warning("保存された問題がありません。問題登録ページで問題を作成してください。")
+                    return
+                
+                # created_atでソート（新しい順）
+                sorted_problems = sorted(saved_problems, key=lambda x: x.created_at, reverse=True)
+                problems_to_print = sorted_problems[:int(total_questions)]
+                
+                if problems_to_print:
+                    st.session_state.extracted_problems = problems_to_print
+                    st.success(f"✅ 最新を{len(problems_to_print)}問抽出しました")
+                else:
+                    st.warning("問題が見つかりませんでした。")
+                    return
+                    
+            except Exception as e:
+                st.error(f"❌ 最新抽出に失敗しました: {e}")
+                return
+    
+    with col4:
+        if st.button("🎲 ランダム", type="secondary", use_container_width=True):
             try:
                 # ランダム抽出ロジック
                 saved_problems = st.session_state.problem_storage.load_problems()
@@ -363,7 +416,6 @@ def show_print_page():
                     return
                 
                 # ランダムに抽出（重複なし）
-                import random
                 qpp = int(total_questions)
                 if len(saved_problems) >= qpp:
                     problems_to_print = random.sample(saved_problems, qpp)
