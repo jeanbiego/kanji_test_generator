@@ -52,7 +52,7 @@
   }
   
   .question-item {
-    margin-bottom: 18mm;
+    margin-right: 0mm;
     page-break-inside: avoid;
     display: flex;
     align-items: flex-start;

@@ -593,7 +593,7 @@ def show_history_page():
             search_term = st.text_input("🔍 検索", placeholder="問題文、漢字、読みで検索")
         
         with col2:
-            sort_by = st.selectbox("📊 並び順", ["作成日時（新しい順）", "作成日時（古い順）", "問題文（あいうえお順）", "漢字（あいうえお順）"])
+            sort_by = st.selectbox("📊 並び順", ["作成日時（新しい順）", "作成日時（古い順）", "苦手（不正解数順）"])
         
         with col3:
             show_count = st.number_input("表示件数", min_value=5, max_value=100, value=20)
@@ -615,10 +615,8 @@ def show_history_page():
             filtered_problems.sort(key=lambda x: x.created_at, reverse=True)
         elif sort_by == "作成日時（古い順）":
             filtered_problems.sort(key=lambda x: x.created_at)
-        elif sort_by == "問題文（あいうえお順）":
-            filtered_problems.sort(key=lambda x: x.sentence)
-        elif sort_by == "漢字（あいうえお順）":
-            filtered_problems.sort(key=lambda x: x.answer_kanji)
+        elif sort_by == "苦手（不正解数順）":
+            filtered_problems.sort(key=lambda x: x.incorrect_count, reverse=True)
         
         # 重複IDをUI上で非表示（最初の1件のみ採用）
         seen_ids = set()
