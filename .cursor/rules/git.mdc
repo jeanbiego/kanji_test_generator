@@ -54,7 +54,7 @@ alwaysApply: true
 ### タグの作成と反映
 ```bash
 git tag v1.0.0
-git push --tags
+git push origin --tags
 ```
 
 ## 4. Git除外設定
@@ -80,7 +80,44 @@ dist/
 build/
 ```
 
-## 5. 開発フロー
+## 5. リモートリポジトリ
+
+### リモートリポジトリ情報
+- **URL**: https://github.com/jeanbiego/kanji_test_generator.git
+- **リモート名**: `origin`
+- **メインブランチ**: `master`
+
+### リモート接続の確認
+```bash
+# リモート設定の確認
+git remote -v
+
+# 追跡関係の確認
+git branch -vv
+```
+
+### プッシュ操作
+```bash
+# masterブランチをプッシュ（初回のみ -u オプション）
+git push -u origin master
+
+# 通常のプッシュ（追跡関係設定後）
+git push
+
+# タグをプッシュ
+git push origin --tags
+```
+
+### プル操作
+```bash
+# リモートから最新の変更を取得
+git pull origin master
+
+# 追跡関係設定後は省略可能
+git pull
+```
+
+## 6. 開発フロー
 
 ### 新機能開発
 ```bash
@@ -97,10 +134,10 @@ git push -u origin feature/新機能名
 ### メインブランチ更新時
 ```bash
 git checkout master
-git pull
+git pull origin master
 ```
 
-## 6. 品質管理チェックリスト
+## 7. 品質管理チェックリスト
 
 ### 環境一貫性
 - [ ] ローカル環境とCI環境の一致
@@ -116,12 +153,11 @@ git pull
 >  **注意事項**
 > - このルールは随時更新される可能性があります
 > - 変更は必ずPRを通じてレビューを受けてください
-> - 不明な点はチームで確認してください 
-> - 現在、リモートリポジトリは使用していません
+> - 不明な点はチームで確認してください
 
-## 7. PowerShell環境でのコマンド実行
+## 8. PowerShell環境でのコマンド実行
 
-### 7.1 適切なコマンド実行方法
+### 8.1 適切なコマンド実行方法
 
 #### 短縮版コマンドの使用
 ```bash
@@ -147,7 +183,7 @@ git log --oneline --graph -10
 git diff --stat
 ```
 
-### 7.2 PowerShellでの中断方法
+### 8.2 PowerShellでの中断方法
 
 #### 適切な中断コマンド
 - `Ctrl+C`: 現在実行中のコマンドを中断
@@ -158,7 +194,7 @@ git diff --stat
 - `q^D`: PowerShellでは機能しない不適切なコマンド
 - `q`（単独）: 一部のコマンドでのみ有効
 
-### 7.3 効率的なGit操作
+### 8.3 効率的なGit操作
 
 #### 日常的な操作
 ```bash
@@ -187,7 +223,7 @@ git log --oneline -3
 git reset --soft HEAD~1
 ```
 
-### 7.4 推奨するワークフロー
+### 8.4 推奨するワークフロー
 
 1. **作業開始時**
    ```bash
@@ -205,7 +241,7 @@ git reset --soft HEAD~1
    git log --oneline -3  # 最新のコミット確認
    ```
 
-### 7.5 注意事項
+### 8.5 注意事項
 - PowerShellでは`q^D`は使用しない
 - 長い出力が予想される場合は短縮版コマンドを使用
 - 処理が止まった場合は`Ctrl+C`で中断
@@ -213,5 +249,4 @@ git reset --soft HEAD~1
 >  **注意事項**
 > - このルールは随時更新される可能性があります
 > - 変更は必ずPRを通じてレビューを受けてください
-> - 不明な点はチームで確認してください 
-> - 現在、リモートリポジトリは使用していません
+> - 不明な点はチームで確認してください
