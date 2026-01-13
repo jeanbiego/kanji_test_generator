@@ -36,12 +36,21 @@ alwaysApply: true
   - 例: `feat: ユーザー認証機能の追加`
   - 例: `fix: ログイン時のバグ修正`
   - 例: `docs: READMEの更新`
+- よく使うタイプ: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+
+### コミットメッセージの言語
+- **コミットメッセージは日本語で記述**（本プロジェクトの標準）
+- Windows PowerShellでのエンコーディング問題を防ぐため、英語での記述も可能
+- 英語メッセージは異なるシステムやチーム間で互換性が高い
+- チームの方針に従って言語を選択すること
 
 ### コミットの原則
 - 1機能 = 1コミット
-- コミットメッセージは日本語で記述
 - 変更内容が明確に分かるように記述
 - **指示なきコミットは禁止** - ユーザーからの明示的な指示がある場合のみコミットを実行
+- 変更は **小さな単位**で行う
+- 複数目的の変更を混ぜない
+- Plan 単位 ≒ コミット単位を意識する
 
 ## 3. バージョン管理
 
@@ -119,16 +128,43 @@ git pull
 
 ## 6. 開発フロー
 
+### 基本的なGitワークフロー
+
+1. **featureブランチを作成する**（必須）
+   ```bash
+   git checkout -b feat/feature-name
+   ```
+   - **重要**: `master`ブランチで直接作業してはならない
+   - 変更を加える前に必ずfeatureブランチを作成する
+   - これにより`master`ブランチが安定し、プルリクエストを通じたコードレビューが可能になる
+
+2. **変更を加え、意味のあるメッセージで頻繁にコミットする**
+   - `git add .` で変更をステージング
+   - `git commit -m "message"` でコミット
+
+3. **featureブランチをリモートにpushする**
+   ```bash
+   git push -u origin feat/feature-name
+   ```
+
+4. **GitHubでプルリクエストを作成する**
+
+5. **PRがマージされた後、ローカルの`master`ブランチを更新する**
+   ```bash
+   git checkout master
+   git pull origin master
+   ```
+
 ### 新機能開発
 ```bash
-# 1. 開発ブランチ作成
-git checkout -b feature/新機能名
+# 1. 開発ブランチ作成（必須）
+git checkout -b feat/新機能名
 
 # 2. 開発作業
 # コード編集 → コミット
 
 # 3. プッシュとPR作成
-git push -u origin feature/新機能名
+git push -u origin feat/新機能名
 ```
 
 ### メインブランチ更新時
@@ -136,6 +172,11 @@ git push -u origin feature/新機能名
 git checkout master
 git pull origin master
 ```
+
+### ブランチ命名規則
+- 機能ブランチ: `feat/feature-name` (例: `feat/phase3-domain-services`)
+- バグ修正: `fix/bug-description`
+- ドキュメント: `docs/update-description`
 
 ## 7. 品質管理チェックリスト
 
@@ -246,7 +287,39 @@ git reset --soft HEAD~1
 - 長い出力が予想される場合は短縮版コマンドを使用
 - 処理が止まった場合は`Ctrl+C`で中断
 - コミット時は`--quiet`オプションで出力を最小限に
->  **注意事項**
+
+## 9. Force Push
+
+- 共有ブランチでの`git push --force`は避ける
+- 個人ブランチまたは明示的に必要な場合のみ`--force`を使用する
+- 共有ブランチにforce pushする前に必ずチームと調整する
+
+## 10. GitHub Issue読み取り設定
+
+CursorエージェントがGitHubのissueを読み取る方法です。GitHub CLI (`gh`) がインストール・認証済みであることを前提とします。
+
+### エージェントによるissue読み取り方法
+
+エージェントは以下の形式でissueを参照できます：
+
+- **issue URL**: `https://github.com/owner/repo/issues/123`
+- **リポジトリとissue番号**: `owner/repo#123`
+
+エージェントは`gh issue view`コマンドを使用してissueを取得します：
+
+```bash
+# JSON形式でissueを取得
+gh issue view <number> --repo owner/repo --json title,body,state,labels,comments,number
+```
+
+例：
+```bash
+gh issue view 123 --repo jeanbiego/kanji_test_generator --json title,body,state,labels,comments,number
+```
+
+---
+
+> **注意事項**
 > - このルールは随時更新される可能性があります
 > - 変更は必ずPRを通じてレビューを受けてください
 > - 不明な点はチームで確認してください
