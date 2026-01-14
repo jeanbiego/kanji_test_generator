@@ -5,14 +5,14 @@ Streamlitエントリーポイント
 
 import streamlit as st
 import random
-from modules.models import Problem, Attempt
-from modules.storage import ProblemStorage, AttemptStorage
-from modules.rendering import TextRenderer
-from modules.validators import InputValidator
-from modules.logger import app_logger
-from modules.error_handler import ErrorHandler, error_handler
-from modules.backup import BackupManager
-from modules.health_check import run_health_check
+from src.modules.models import Problem, Attempt
+from src.modules.storage import ProblemStorage, AttemptStorage
+from src.modules.rendering import TextRenderer
+from src.modules.validators import InputValidator
+from src.modules.logger import app_logger
+from src.modules.error_handler import ErrorHandler, error_handler
+from src.modules.backup import BackupManager
+from src.modules.health_check import run_health_check
 
 # Streamlit設定（アプリケーションの最初に実行）
 st.set_page_config(
