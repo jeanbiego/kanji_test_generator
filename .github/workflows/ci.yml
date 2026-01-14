@@ -32,11 +32,9 @@ jobs:
         run: pytest tests/ -v
       
       - name: Run linting
-        continue-on-error: true
         run: ruff check src/ tests/
       
       - name: Check formatting
-        continue-on-error: true
         run: ruff format --check src/ tests/
       
       - name: Type check
