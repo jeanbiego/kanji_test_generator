@@ -276,7 +276,8 @@ def check_duplicate_problem(sentence: str, answer_kanji: str, reading: str) -> t
         (is_duplicate, message): 重複フラグとメッセージ
     """
     try:
-        from modules.utils import normalize_reading
+        # CI/pytest実行時は `src` がパッケージルートになるため絶対インポートに統一する
+        from src.modules.utils import normalize_reading
         
         # 入力された読みを正規化して比較
         normalized_reading = normalize_reading(reading)

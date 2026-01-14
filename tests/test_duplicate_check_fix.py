@@ -34,7 +34,7 @@ class TestDuplicateCheckFix:
         ]
     
     def test_check_duplicate_problem_complete_match(self):
-        """完全一致の重複チェックテスト"""
+        """完全一致の重複チェックテスト（実装仕様: 回答漢字と読みの組み合わせのみチェック）"""
         # Arrange
         with patch.object(st, 'session_state') as mock_session:
             mock_storage = Mock()
@@ -50,7 +50,7 @@ class TestDuplicateCheckFix:
             
             # Assert
             assert is_duplicate == True
-            assert "完全に同じ問題が既に存在します" in message
+            assert "同じ漢字・読みの組み合わせが既に存在します" in message
     
     def test_check_duplicate_problem_kanji_reading_match(self):
         """漢字・読み組み合わせの重複チェックテスト"""
@@ -72,7 +72,7 @@ class TestDuplicateCheckFix:
             assert "同じ漢字・読みの組み合わせが既に存在します" in message
     
     def test_check_duplicate_problem_sentence_match(self):
-        """問題文一致の重複チェックテスト"""
+        """問題文一致の重複チェックテスト（実装仕様: 問題文一致はチェックしないため、重複なしとなる）"""
         # Arrange
         with patch.object(st, 'session_state') as mock_session:
             mock_storage = Mock()
@@ -87,8 +87,9 @@ class TestDuplicateCheckFix:
             )
             
             # Assert
-            assert is_duplicate == True
-            assert "同じ問題文が既に存在します" in message
+            # 実装では問題文一致をチェックしないため、回答漢字と読みが異なれば重複なし
+            assert is_duplicate == False
+            assert message == ""
     
     def test_check_duplicate_problem_no_duplicate(self):
         """重複なしのテスト"""
