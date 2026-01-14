@@ -70,3 +70,8 @@ generated_print_page.html
 
 # OpenSpec
 openspec/changes/
+
+# Environment variables
+.env
+.env.local
+.env.*.local

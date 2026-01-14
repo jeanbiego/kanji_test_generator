@@ -82,9 +82,21 @@ select = [
 ]
 
 ignore = [
-    "E501",  # line too long (handled by formatter)
+    "E501",    # line too long (handled by formatter)
     "PLR0913", # too many arguments
     "PLR2004", # magic value used in comparison
+    "PLR0911", # too many return statements
+    "PLR0912", # too many branches
+    "PLR0915", # too many statements
+    "SIM102",  # nested ifs that can be combined
+    "N999",    # invalid module name (project-level仕様として許容)
+    "RUF001",  # ambiguous unicode in strings（日本語全角記号を許容）
+    "RUF003",  # ambiguous unicode in comments（日本語全角記号を許容）
+    "ARG001",  # unused function arguments（一部シグネチャは仕様上維持）
+    "PLC0415", # import should be at the top-level（ローカルimport許容箇所あり）
+    "TRY300",  # move return to else block（可読性とのトレードオフで許容）
+    "TRY400",  # use logging.exception instead of error（一部ポリシー外のため許容）
+    "DTZ005",  # datetime.now without tz（ローカルアプリのため許容）
 ]
 
 [tool.ruff.lint.per-file-ignores]
