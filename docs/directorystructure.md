@@ -3,6 +3,9 @@
 
 ### ルートディレクトリ
 - `.cursor/`: Cursor IDEの設定ファイルを格納
+- `.github/`: GitHub Actionsワークフローファイルを格納
+  - `workflows/`: CI/CDワークフローファイル
+    - `ci.yml`: GitHub Actions CIワークフロー（テスト、リント、フォーマット、型チェック）
 - `.git/`: Gitリポジトリの設定ファイル
 - `.mypy_cache/`: mypyのキャッシュファイル
 - `docs/`: プロジェクトのドキュメントを格納
@@ -12,10 +15,10 @@
 - `src/`: ソースコードを格納
 - `tests/`: テストコードを格納
 - `.gitignore`: Gitの除外設定ファイル
-- `.pylintrc`: pylintの設定ファイル
-- `mypy.ini`: mypyの設定ファイル
+- `mypy.ini`: mypyの型チェック設定ファイル
+- `pyproject.toml`: プロジェクト設定ファイル（black、ruff、mypy設定を含む）
+- `ruff.toml`: Ruffリント・フォーマット設定ファイル
 - `requirements.txt`: Pythonパッケージの依存関係定義
-- `setup.cfg`: flake8の設定ファイル
 - `README.md`: プロジェクト説明書
 
 ### src/
@@ -137,3 +140,10 @@
 - 各モジュールに対応するテストファイルを作成する
 - テスト駆動開発（TDD）を実践する
 - カバレッジ80%以上を目標とする
+
+### CI/CD設定
+- `.github/workflows/`: GitHub Actionsワークフローファイル
+  - `ci.yml`: CIワークフロー（テスト、リント、フォーマット、型チェック）
+- `ruff.toml`: Ruffリント・フォーマット設定ファイル
+- `pyproject.toml`: プロジェクト設定ファイル（black、ruff、mypy設定を含む）
+- `mypy.ini`: MyPy型チェック設定ファイル

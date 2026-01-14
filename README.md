@@ -55,6 +55,26 @@ streamlit run src/app.py
 - ReportLab
 - pandas
 
+## CI/CD
+
+このプロジェクトでは、GitHub Actionsを使用してCI/CDパイプラインを実装しています。
+
+### CI実行内容
+
+プルリクエスト作成時またはmasterブランチへのpush時に、以下のチェックが自動実行されます：
+
+- **テスト実行**: pytestによる単体テストの実行
+- **リントチェック**: ruffによるコード品質チェック
+- **フォーマットチェック**: ruff formatによるコードフォーマットチェック
+- **型チェック**: mypyによる型チェック
+
+### 設定ファイル
+
+- `.github/workflows/ci.yml`: GitHub Actionsワークフローファイル
+- `ruff.toml`: Ruffリント・フォーマット設定
+- `pyproject.toml`: プロジェクト設定（black、ruff、mypy設定を含む）
+- `mypy.ini`: MyPy型チェック設定
+
 ## プロジェクト構成
 ```
 kanji_quiz/
